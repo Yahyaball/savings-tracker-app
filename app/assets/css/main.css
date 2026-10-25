@@ -1,12 +1,77 @@
-@font-face {
-  font-family: "Bricolage Grotesque";
-  src: url("/fonts/BricolageGrotesque-VariableFont_opsz,wdth,wght.ttf");
-  font-style: normal;
-  font-display: swap;
-}
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/fonts/BricolageGrotesque-VariableFont_opsz,wdth,wght.ttf")
+    format("truetype");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-VariableFont_opsz,wght.ttf") format("truetype");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Italic-VariableFont_opsz,wght.ttf") format("truetype");
+  font-style: italic;
+}
+
 @theme {
-  --font-custom: Bricolage Grotesque, serif;
-  --color-red-500: #ffffff;
+  --font-bricolage-grotesque: Bricolage Grotesque, sans-serif;
+  --font-inter: Inter, sans-serif;
+  --spacing: 0.5rem;
+  --color-neutral-900: #101010;
+  --color-neutral-800: #1f1f1f;
+  --color-neutral-700: #313131;
+  --color-neutral-600: #3c3b40;
+  --color-neutral-500: #676767;
+  --color-neutral-400: #898abb;
+  --color-neutral-300: #b7b7b7;
+  --color-neutral-0: #ffffff;
+  --color-orange-400: #ff5722;
+  --color-orange-500: #eb430e;
+  --color-orange-700: #b92b09;
+  --color-orange-800: #903014;
+  --color-green-500: #4ade80;
+  --color-green-900: #1a3d2b;
+  --color-red-500: #ef4444;
+}
+
+@utility preset-1 {
+  @apply font-bricolage-grotesque font-semibold text-[4rem] leading-[100%] tracking-[-0.125rem];
+}
+
+@utility preset-1-mobile {
+  @apply font-bricolage-grotesque font-semibold text-[2.75rem] leading-[100%] tracking-[-0.125rem];
+}
+
+@utility preset-2 {
+  @apply font-inter font-bold text-[2rem] leading-[120%] tracking-normal;
+}
+
+@utility preset-3 {
+  @apply font-inter font-bold text-[1.25rem] leading-[120%] tracking-[-0.019rem];
+}
+
+@utility preset-4 {
+  @apply font-inter font-semibold text-[1.25rem] leading-[120%] tracking-[-0.019rem];
+}
+
+@utility preset-5 {
+  @apply font-inter font-medium text-[1rem] leading-[150%] tracking-[-0.019rem];
+}
+
+@utility preset-5-semibold {
+  @apply font-inter font-semibold text-[1rem] leading-[140%] tracking-[-0.019rem];
+}
+
+@utility preset-6 {
+  @apply font-inter font-semibold text-[0.875rem] leading-[140%] tracking-[-0.019rem];
+}
+
+@utility preset-7 {
+  @apply font-inter font-semibold text-[0.688rem] leading-[120%] tracking-normal;
 }
