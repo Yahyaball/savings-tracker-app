@@ -9,5 +9,5 @@ console.log(goals.value)
 </script>
 
 <template>
-    sdffsdsdfds
+    <p class="font-custom bg-red-500">WOY</p>
 </template>
