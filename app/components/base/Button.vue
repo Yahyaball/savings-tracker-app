@@ -1,0 +1,69 @@
+<script setup lang="ts">
+import { tv, type VariantProps } from 'tailwind-variants';
+
+const buttonStyles = tv({
+    slots: {
+        base: 'flex items-center justify-center gap-1.25 px-2.5 py-1.5 rounded-full preset-5 cursor-pointer transition-colors outline-0 focus-visible:shadow-[0_0_0_2px_var(--color-neutral-900),0_0_0_4px_var(--color-orange-400)]',
+        icon: ''
+    },
+    variants: {
+        intent: {
+            primary: {
+                base: 'bg-orange-400 text-neutral-900 hover:bg-orange-500',
+                icon: ''
+            },
+            secondary: {
+                base: 'bg-neutral-800 ring-1 ring-inset ring-neutral-600 hover:bg-neutral-700',
+                icon: 'brightness-5000'
+            },
+            tertiary: {
+                base: 'hover:bg-neutral-800',
+                icon: 'brightness-5000',
+            },
+        },
+        disabled: {
+            true: 'cursor-not-allowed',
+            false: ''
+        }
+    },
+    compoundSlots: [
+        {
+            intent: 'secondary',
+            disabled: true,
+            slots: ['base'],
+            class: 'text-neutral-400'
+        },
+    ],
+    defaultVariants: {
+        intent: 'primary',
+        disabled: false
+    }
+}
+)
+
+type ButtonVariants = VariantProps<typeof buttonStyles>
+
+const props = withDefaults(
+    defineProps<{
+        intent?: ButtonVariants['intent']
+        disabled?: boolean,
+        type?: 'button' | 'submit' | 'reset'
+    }>(),
+    {
+        intent: undefined,
+        disabled: undefined,
+        type: 'button',
+    }
+)
+
+const styles = computed(() => buttonStyles({ intent: props.intent, disabled: props.disabled }))
+</script>
+
+<template>
+    <button :type="type" :disabled="disabled" :class="styles.base()">
+        <span v-if="$slots.icon" :class="styles.icon()">
+            <slot name="icon" />
+        </span>
+        <slot />
+    </button>
+</template>
