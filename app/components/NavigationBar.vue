@@ -2,14 +2,18 @@
 import LogoSmall from '../assets/images/logo-small.svg'
 import LogoLarge from '../assets/images/logo-large.svg'
 import Plus from '../assets/images/icon-plus.svg'
+
 </script>
 
 <template>
-    <img :src="LogoSmall" alt="Savings Tracker">
-    <BaseButton intent="primary">
-        <template #icon>
-            <img :src="Plus" alt="">
-        </template>
-        Button
-    </BaseButton>
+    <header
+        class="flex justify-between px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(0.75rem,0.511rem+1.018vw,1rem)] shadow-[0_1px_0_0_var(--color-neutral-800)]">
+        <img :src="LogoSmall" alt="Savings Tracker">
+        <BaseButton intent="primary" type="button">
+            <template #icon>
+                <img :src="Plus" alt="">
+            </template>
+            New goal
+        </BaseButton>
+    </header>
 </template>
