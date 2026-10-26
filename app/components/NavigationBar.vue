@@ -6,7 +6,7 @@ import Plus from '../assets/images/icon-plus.svg'
 
 <template>
     <img :src="LogoSmall" alt="Savings Tracker">
-    <BaseButton intent="secondary" disabled>
+    <BaseButton intent="primary">
         <template #icon>
             <img :src="Plus" alt="">
         </template>

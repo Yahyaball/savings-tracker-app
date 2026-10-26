@@ -14,11 +14,11 @@ const buttonStyles = tv({
             },
             secondary: {
                 base: 'bg-neutral-800 ring-1 ring-inset ring-neutral-600 hover:bg-neutral-700',
-                icon: 'brightness-5000'
+                icon: 'invert brightness-0'
             },
             tertiary: {
                 base: 'hover:bg-neutral-800',
-                icon: 'brightness-5000',
+                icon: 'invert brightness-0',
             },
         },
         disabled: {
@@ -32,6 +32,12 @@ const buttonStyles = tv({
             disabled: true,
             slots: ['base'],
             class: 'text-neutral-400'
+        },
+        {
+            intent: 'secondary',
+            disabled: true,
+            slots: ['icon'],
+            class: 'brightness-640 hue-rotate-210 saturate-1'
         },
     ],
     defaultVariants: {
