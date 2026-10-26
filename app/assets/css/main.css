@@ -75,3 +75,9 @@
 @utility preset-7 {
   @apply font-inter font-semibold text-[0.688rem] leading-[120%] tracking-normal;
 }
+
+@layer base {
+  body {
+    @apply bg-neutral-900 text-neutral-0;
+  }
+}
