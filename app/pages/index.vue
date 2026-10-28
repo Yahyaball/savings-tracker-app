@@ -55,13 +55,19 @@ for (const goal of (goals.value ?? [])) {
         }
     }
 }
-console.log(boxes)
 const maxTotal = Math.max(...boxes.map(box => box.total))
 const heightPercentage = (value: number) => {
     return `${(value / maxTotal) * 100}%`
 }
-console.log(maxTotal)
-//TODO: Resize all of the bar chart based on amount
+
+const getCardSize = (index: number): 'default' | 'wide' | 'tall' => {
+    const mod = index % 4
+    if (mod === 0) return 'wide'
+    if (mod === 3) return 'tall'
+    return 'default'
+}
+
+//TODO: Make a tablet and desktop design
 </script>
 
 <template>
@@ -102,7 +108,7 @@ console.log(maxTotal)
                     </div>
                 </section>
             </div>
-            <div class="flex flex-col mt-2.5">
+            <div class="flex flex-col mt-2.5 gap-3">
                 <div class="flex flex-col gap-2.5">
                     <h2 class="preset-2">Your goals</h2>
                     <div class="flex gap-2">
@@ -116,6 +122,12 @@ console.log(maxTotal)
                                 <img :src="Sort" alt="">
                             </template>Sort by
                         </BaseButton>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <div v-for="(goal, index) in goals" :key="goal.id">
+                        <GoalCard :name="goal.name" :amount="goalSaved(goal)" :deadline="goal.deadline"
+                            :target="goal.target" :size="getCardSize(index)" />
                     </div>
                 </div>
             </div>
