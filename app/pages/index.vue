@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Goal } from '~/types/savings'
 import { goalSaved } from '~/utils/savings'
+import Filter from '../assets/images/icon-filter.svg'
+import Sort from '../assets/images/icon-sort.svg'
 
 const config = useRuntimeConfig()
 const { data: goals } = await useFetch<Goal[]>(config.public.apiBaseUrl, {
@@ -54,14 +56,18 @@ for (const goal of (goals.value ?? [])) {
     }
 }
 console.log(boxes)
-
+const maxTotal = Math.max(...boxes.map(box => box.total))
+const heightPercentage = (value: number) => {
+    return `${(value / maxTotal) * 100}%`
+}
+console.log(maxTotal)
 //TODO: Resize all of the bar chart based on amount
 </script>
 
 <template>
     <div>
         <NavigationBar />
-        <main class="px-2 py-4">
+        <main class="px-2 py-4 flex flex-col gap-4">
             <div class="flex flex-col gap-2">
                 <section
                     class="flex flex-col gap-4 p-2 rounded-2xl bg-linear-to-l from-orange-400 to-orange-700 ring-1 ring-inset ring-white/30">
@@ -89,11 +95,29 @@ console.log(boxes)
                             </span>
                             <span class="relative h-18 w-full">
                                 <span
-                                    class="absolute h-18 bg-orange-400 w-full ring-1 ring-inset ring-white/30 rounded-lg"></span>
+                                    class="absolute bg-orange-400 w-full ring-1 ring-inset ring-white/30 rounded-lg bottom-0"
+                                    :style="{ height: heightPercentage(box.total) }"></span>
                             </span>
                         </div>
                     </div>
                 </section>
+            </div>
+            <div class="flex flex-col mt-2.5">
+                <div class="flex flex-col gap-2.5">
+                    <h2 class="preset-2">Your goals</h2>
+                    <div class="flex gap-2">
+                        <BaseButton intent="secondary" class="flex-1">
+                            <template #icon>
+                                <img :src="Filter" alt="">
+                            </template>Filters
+                        </BaseButton>
+                        <BaseButton intent="secondary" class="flex-1">
+                            <template #icon>
+                                <img :src="Sort" alt="">
+                            </template>Sort by
+                        </BaseButton>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
