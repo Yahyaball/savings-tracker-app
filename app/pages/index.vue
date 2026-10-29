@@ -3,7 +3,6 @@ import type { Goal } from '~/types/savings'
 import { goalSaved } from '~/utils/savings'
 import Filter from '../assets/images/icon-filter.svg'
 import Sort from '../assets/images/icon-sort.svg'
-import { getSlotIslandResponse } from 'nuxt/internal/renderer/islands'
 
 const config = useRuntimeConfig()
 const { data: goals } = await useFetch<Goal[]>(config.public.apiBaseUrl, {
@@ -40,7 +39,7 @@ const completedGoals = computed(() =>
 const now = new Date()
 const boxes: { key: string, total: number, month: string }[] = []
 
-for (let i = 5; i >= 0; i--) {
+for (let i = 11; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const key = date.getFullYear() + '-' + (date.getMonth() + 1)
     const monthText = Intl.DateTimeFormat('en-US', { month: 'short' }).format(date)
@@ -73,8 +72,8 @@ const getCardSize = (index: number): 'default' | 'wide' | 'tall' => {
     <div>
         <NavigationBar />
         <main
-            class="px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(2rem,1.046rem+4.071vw,3rem)] flex flex-col gap-4">
-            <div class="grid gap-2 grid-cols-2">
+            class="px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(2rem,1.046rem+4.071vw,3rem)] flex flex-col gap-4 lg:px-10 lg:py-6">
+            <div class="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
                 <section
                     class="flex flex-col gap-4 p-[clamp(1rem,0.761rem+1.018vw,1.25rem)] rounded-2xl bg-linear-to-l from-orange-400 to-orange-700 ring-1 ring-inset ring-white/30 md:col-span-2">
                     <h1 class="preset-5-semibold">Total savings</h1>
@@ -91,10 +90,11 @@ const getCardSize = (index: number): 'default' | 'wide' | 'tall' => {
                     <p class="preset-1-mobile text-green-500 md:preset-1">{{ completedGoals.length }}</p>
                 </section>
                 <section
-                    class="flex flex-col gap-2.5 p-[clamp(1rem,0.761rem+1.018vw,1.25rem)] rounded-2xl bg-neutral-800 ring-1 ring-inset ring-neutral-600 col-span-2">
+                    class="flex flex-col gap-2.5 p-[clamp(1rem,0.761rem+1.018vw,1.25rem)] rounded-2xl bg-neutral-800 ring-1 ring-inset ring-neutral-600 md:col-span-2 lg:col-span-4">
                     <h2 class="preset-4">Monthly deposits</h2>
-                    <div class="grid grid-cols-6 gap-[clamp(0.5rem,0.023rem+2.036vw,1rem)]">
-                        <div v-for="box in boxes" :key="box.key" class="flex flex-col-reverse items-center gap-1.25">
+                    <div class="grid grid-cols-6 lg:grid-cols-12 gap-[clamp(0.5rem,0.023rem+2.036vw,1rem)]">
+                        <div v-for="box in boxes" :key="box.key"
+                            class="flex flex-col-reverse items-center gap-1.25 max-lg:nth-[-n+6]:hidden">
                             <span class="flex flex-col-reverse gap-0.5 items-center">
                                 <span class="preset-7 md:preset-5">{{ box.month }}</span>
                                 <span class="preset-7 text-neutral-300 md:preset-6">{{
@@ -125,7 +125,7 @@ const getCardSize = (index: number): 'default' | 'wide' | 'tall' => {
                         </BaseButton>
                     </div>
                 </div>
-                <div class="grid gap-3 md:grid-cols-2">
+                <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3 lg:grid-flow-row-dense">
                     <GoalCard v-for="(goal, index) in goals" :key="goal.id" :name="goal.name" :amount="goalSaved(goal)"
                         :deadline="goal.deadline" :target="goal.target" :size="getCardSize(index)" />
                 </div>
