@@ -4,8 +4,8 @@ import { tv, type VariantProps } from 'tailwind-variants';
 
 const goalCardStyle = tv({
     slots: {
-        base: 'flex flex-col gap-2 rounded-2xl p-2 ring-1 ring-inset',
-        percentage: 'preset-1-mobile',
+        base: 'flex flex-col gap-2 rounded-2xl p-[clamp(1rem,0.523rem+2.036vw,1.5rem)] ring-1 ring-inset',
+        percentage: 'preset-1-mobile md:preset-1',
         progress: 'relative h-1.5 w-full rounded-[2.5rem]',
         innerProgress: 'absolute h-[inherit] rounded-[inherit] ring-1 ring-inset ring-white/30 bg-[repeating-linear-gradient(-60deg,rgba(0,0,6,0.1),rgba(0,0,0,0.1)_2px,rgba(0,0,0,0)_2px,rgba(0,0,0,0)_8.73px)]',
         amount: 'preset-6',
@@ -16,7 +16,7 @@ const goalCardStyle = tv({
     variants: {
         size: {
             default: {
-                base: "min-h-25 bg-neutral-800 ring-neutral-600 bg-[url('/assets/images/pattern-grid.svg')]",
+                base: "min-h-25 bg-neutral-800 ring-neutral-600 bg-[url('/assets/images/pattern-grid.svg')] md:min-h-[15rem]",
                 percentage: 'text-orange-400',
                 progress: 'bg-neutral-700',
                 innerProgress: 'bg-orange-400',
@@ -24,12 +24,12 @@ const goalCardStyle = tv({
                 complete: 'text-green-500 ring-green-500 bg-green-900'
             },
             wide: {
-                base: 'min-h-30 bg-linear-to-l from-orange-400 to-orange-700 ring-white/30',
+                base: 'min-h-30 bg-linear-to-l from-orange-400 to-orange-700 ring-white/30 md:min-h-[15rem] md:col-span-2',
                 progress: 'bg-orange-800',
                 innerProgress: 'bg-neutral-0'
             },
             tall: {
-                base: "min-h-32.5 bg-neutral-800 ring-neutral-600 bg-[url('/assets/images/pattern-grid.svg')]",
+                base: "min-h-32.5 bg-neutral-800 ring-neutral-600 bg-[url('/assets/images/pattern-grid.svg')] md:min-h-[15rem] md:col-span-2",
                 percentage: 'text-orange-400',
                 progress: 'bg-neutral-700',
                 innerProgress: 'bg-orange-400',
