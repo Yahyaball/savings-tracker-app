@@ -52,22 +52,13 @@ const goalCardStyle = tv({
 
 type CardVariants = VariantProps<typeof goalCardStyle>
 
-const props = withDefaults(
-    defineProps<{
-        name: string
-        amount: number
-        deadline: string | null
-        target: number
-        size?: CardVariants['size']
-    }>(),
-    {
-        name: undefined,
-        amount: undefined,
-        deadline: null,
-        target: undefined,
-        size: undefined,
-    }
-)
+const props = defineProps<{
+    name: string
+    amount: number
+    deadline: string | null
+    target: number
+    size?: CardVariants['size']
+}>()
 
 const currency = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -77,7 +68,9 @@ const currency = new Intl.NumberFormat('en-US', {
 
 const deadlineDate = computed(() => {
     if (!props.deadline) return null
-    return new Date(props.deadline)
+    const d = new Date(props.deadline)
+    if (Number.isNaN(d.getTime())) return null
+    return d
 })
 
 const formattedDeadline = computed(() => {
@@ -90,12 +83,18 @@ const formattedDeadline = computed(() => {
     return `Due ${deadlineFormatted}`
 })
 
-const percentage = computed(() => {
-    return `${Math.round((props.amount / props.target) * 100)}%`
+const percentageValue = computed(() => {
+    if (!props.target || props.target <= 0) return 0
+    const amount = props.amount ?? 0
+    const target = props.target ?? 0
+    const p = Math.round((amount / target) * 100)
+    return Math.min(Math.max(p, 0), 100)
 })
 
-const isEmpty = computed(() => props.amount <= 0)
-const isFull = computed(() => props.target > 0 && props.amount >= props.target)
+const percentage = computed(() => `${percentageValue.value}%`)
+
+const isEmpty = computed(() => (props.amount ?? 0) <= 0)
+const isFull = computed(() => (props.target ?? 0) > 0 && (props.amount ?? 0) >= (props.target ?? 0))
 
 const status = computed(() => {
     if (props.size === 'wide') return undefined
@@ -113,14 +112,16 @@ const styles = computed(() => goalCardStyle({ size: props.size, status: status.v
             <span v-if="isFull" :class="styles.complete()">Complete</span>
         </h3>
         <div class="flex flex-col gap-2 grow justify-end">
-            <p :class="styles.percentage()">{{ percentage }}</p>
+            <p
+role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="percentageValue"
+                :aria-valuetext="`${percentageValue}% of goal`" :class="styles.percentage()">{{ percentage }}</p>
             <div :class="styles.progress()">
-                <div :class="styles.innerProgress()" :style="{ width: percentage }"></div>
+                <div :class="styles.innerProgress()" :style="{ width: percentage }"/>
             </div>
         </div>
         <p class="flex items-center gap-1">
             <span :class="styles.amount()">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
-            <span :class="styles.circle()"></span>
+            <span :class="styles.circle()" aria-hidden="true"/>
             <span :class="styles.due()">
                 {{ formattedDeadline }}
             </span>

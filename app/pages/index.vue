@@ -55,7 +55,7 @@ for (const goal of (goals.value ?? [])) {
         }
     }
 }
-const maxTotal = Math.max(...boxes.map(box => box.total))
+const maxTotal = Math.max(...boxes.map(box => box.total), 1)
 const heightPercentage = (value: number) => {
     return `${(value / maxTotal) * 100}%`
 }
@@ -93,7 +93,8 @@ const getCardSize = (index: number): 'default' | 'wide' | 'tall' => {
                     class="flex flex-col gap-2.5 p-[clamp(1rem,0.761rem+1.018vw,1.25rem)] rounded-2xl bg-neutral-800 ring-1 ring-inset ring-neutral-600 md:col-span-2 lg:col-span-4">
                     <h2 class="preset-4">Monthly deposits</h2>
                     <div class="grid grid-cols-6 lg:grid-cols-12 gap-[clamp(0.5rem,0.023rem+2.036vw,1rem)]">
-                        <div v-for="box in boxes" :key="box.key"
+                        <div
+v-for="box in boxes" :key="box.key"
                             class="flex flex-col-reverse items-center gap-1.25 max-lg:nth-[-n+6]:hidden">
                             <span class="flex flex-col-reverse gap-0.5 items-center">
                                 <span class="preset-7 md:preset-5">{{ box.month }}</span>
@@ -103,7 +104,7 @@ const getCardSize = (index: number): 'default' | 'wide' | 'tall' => {
                             <span class="relative h-18 w-full">
                                 <span
                                     class="absolute bg-orange-400 w-full ring-1 ring-inset ring-white/30 rounded-lg bottom-0"
-                                    :style="{ height: heightPercentage(box.total) }"></span>
+                                    :style="{ height: heightPercentage(box.total) }"/>
                             </span>
                         </div>
                     </div>
@@ -126,8 +127,10 @@ const getCardSize = (index: number): 'default' | 'wide' | 'tall' => {
                     </div>
                 </div>
                 <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3 lg:grid-flow-row-dense">
-                    <GoalCard v-for="(goal, index) in goals" :key="goal.id" :name="goal.name" :amount="goalSaved(goal)"
-                        :deadline="goal.deadline" :target="goal.target" :size="getCardSize(index)" />
+                    <GoalCard
+v-for="(goal, index) in (goals ?? [])" :key="goal.id" :name="goal.name"
+                        :amount="goalSaved(goal)" :deadline="goal.deadline" :target="goal.target"
+                        :size="getCardSize(index)" />
                 </div>
             </div>
         </main>
