@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { tv, type VariantProps } from 'tailwind-variants';
-
+import { motion, useInView } from "motion-v"
+import { useCountUp } from '~/composables/useCountUp'
 
 const goalCardStyle = tv({
     slots: {
@@ -26,7 +27,8 @@ const goalCardStyle = tv({
             wide: {
                 base: 'min-h-30 bg-linear-to-l from-orange-400 to-orange-700 ring-white/30 md:min-h-[15rem] md:col-span-2',
                 progress: 'bg-orange-800',
-                innerProgress: 'bg-neutral-0'
+                innerProgress: 'bg-neutral-0',
+                complete: 'text-green-500 ring-green-500 bg-green-900'
             },
             tall: {
                 base: "min-h-32.5 bg-neutral-800 ring-neutral-600 bg-[url('/assets/images/pattern-grid.svg')] md:min-h-[15rem] md:col-span-2 lg:col-span-1 lg:row-span-2",
@@ -104,27 +106,85 @@ const status = computed(() => {
 })
 
 const styles = computed(() => goalCardStyle({ size: props.size, status: status.value }))
+
+const containerVariants = {
+    hidden: {
+        opacity: 0
+    },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15,
+            delayChildren: 0.1
+        }
+    }
+}
+
+const badgeVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: {
+        scale: 1,
+        opacity: 1,
+        transition: { type: 'spring', stiffness: 300, damping: 20, delay: 0.8 }
+    }
+}
+
+const progressVariants = {
+    hidden: { width: '0%' },
+    visible: (width: string) => ({
+        width: width,
+        transition: {
+            duration: 0.8,
+            ease: [0.25, 0.1, 0.25, 1]
+        }
+    })
+}
+
+const sectionRef = ref<HTMLElement | null>(null)
+const cardInView = useInView(sectionRef, { once: true })
+
+const { display: displayPercentage } = useCountUp(percentageValue, {
+    duration: 0.8,
+    ease: [0.25, 0.1, 0.25, 1],
+    format: "percent",
+    trigger: cardInView
+})
+
+const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
+    duration: 0.8,
+    ease: [0.25, 0.1, 0.25, 1],
+    format: "currency",
+    trigger: cardInView,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+})
 </script>
 
 <template>
-    <section :class="styles.base()">
+    <motion.section ref="sectionRef" :class="styles.base()" :variants="containerVariants" initial="hidden"
+        while-in-view="visible" :in-view-options="{ once: true }">
         <h3 class="flex justify-between preset-4">{{ name }}
-            <span v-if="isFull" :class="styles.complete()">Complete</span>
+            <motion.span v-if="isFull" :class="styles.complete()" :variants="badgeVariants">
+                Complete
+            </motion.span>
         </h3>
         <div class="flex flex-col gap-2 grow justify-end">
-            <p
-role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="percentageValue"
-                :aria-valuetext="`${percentageValue}% of goal`" :class="styles.percentage()">{{ percentage }}</p>
+            <motion.p role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="percentageValue"
+                :aria-valuetext="`${percentageValue}% of goal`" :class="styles.percentage()">
+                {{ displayPercentage }}
+            </motion.p>
             <div :class="styles.progress()">
-                <div :class="styles.innerProgress()" :style="{ width: percentage }"/>
+                <motion.div :class="styles.innerProgress()" :variants="progressVariants" :custom="percentage" />
             </div>
         </div>
         <p class="flex items-center gap-1">
-            <span :class="styles.amount()">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
-            <span :class="styles.circle()" aria-hidden="true"/>
+            <span class="sr-only">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
+            <span :class="styles.amount()" aria-hidden="true">{{ displayAmount }} of {{ currency.format(target)
+                }}</span>
+            <span :class="styles.circle()" aria-hidden="true" />
             <span :class="styles.due()">
                 {{ formattedDeadline }}
             </span>
         </p>
-    </section>
+    </motion.section>
 </template>
