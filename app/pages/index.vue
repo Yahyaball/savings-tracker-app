@@ -42,8 +42,6 @@ const totalSavings = computed(() =>
     (goals.value ?? []).reduce((total, goal) => total + goalSaved(goal), 0),
 )
 
-const formattedTotalSavings = computed(() => currency.format(totalSavings.value))
-
 const activeGoals = computed(() =>
     (goals.value ?? []).filter((goal) => goalSaved(goal) < goal.target),
 )
@@ -117,6 +115,47 @@ const { display: displayCompleted } = useCountUp(() => completedGoals.value.leng
     ease: [0.25, 0.1, 0.25, 1],
     format: "number",
     trigger: completedInView,
+})
+
+const filteredGoals = computed(() => {
+    const all = goals.value ?? []
+    if (filter.value === 'completed') return all.filter((goal) => goalSaved(goal) >= goal.target)
+    if (filter.value === 'in-progress') return all.filter((goal) => goalSaved(goal) > 0 && goalSaved(goal) < goal.target)
+    if (filter.value === 'not-started') return all.filter((goal) => (goalSaved(goal) ?? 0) === 0)
+    return all
+})
+
+const sortedGoals = computed(() => {
+    const goalsToSort = [...filteredGoals.value]
+    if (sortBy.value === 'deadline') {
+        return goalsToSort.sort((a, b) => {
+            if (!a.deadline && !b.deadline) return 0
+            if (!a.deadline) return 1
+            if (!b.deadline) return -1
+            return new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+        })
+    }
+    if (sortBy.value === 'progress-highest') {
+        return goalsToSort.sort((a, b) => {
+            const pa = (goalSaved(a) / a.target) * 100
+            const pb = (goalSaved(b) / b.target) * 100
+            return pb - pa
+        })
+    }
+    if (sortBy.value === 'progress-lowest') {
+        return goalsToSort.sort((a, b) => {
+            const pa = (goalSaved(a) / a.target) * 100
+            const pb = (goalSaved(b) / b.target) * 100
+            return pa - pb
+        })
+    }
+    if (sortBy.value === 'amount-saved') {
+        return goalsToSort.sort((a, b) => goalSaved(b) - goalSaved(a))
+    }
+    if (sortBy.value === 'alphabetical') {
+        return goalsToSort.sort((a, b) => a.name.localeCompare(b.name))
+    }
+    return goalsToSort
 })
 </script>
 
@@ -226,7 +265,7 @@ const { display: displayCompleted } = useCountUp(() => completedGoals.value.leng
                     </div>
                 </motion.div>
                 <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3 lg:grid-flow-row-dense">
-                    <GoalCard v-for="(goal, index) in (goals ?? [])" :key="goal.id" :name="goal.name"
+                    <GoalCard v-for="(goal, index) in sortedGoals" :key="goal.id" :name="goal.name"
                         :amount="goalSaved(goal)" :deadline="goal.deadline" :target="goal.target"
                         :size="getCardSize(index)" />
                 </div>
