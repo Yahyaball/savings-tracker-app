@@ -4,7 +4,22 @@ import { goalSaved } from '~/utils/savings'
 import Filter from '../assets/images/icon-filter.svg'
 import Sort from '../assets/images/icon-sort.svg'
 import { motion, useInView } from 'motion-v'
+import { ref } from 'vue'
 
+const filter = ref('all-goals')
+const sortBy = ref('recently-added')
+const isFilterOpen = ref(false)
+const isSortByOpen = ref(false)
+const filterTarget = useTemplateRef('filterTarget')
+onClickOutside(filterTarget, () => {
+    isFilterOpen.value = false
+}
+)
+const sortByTarget = useTemplateRef('sortByTarget')
+onClickOutside(sortByTarget, () => {
+    isSortByOpen.value = false
+}
+)
 const savingsRef = ref<HTMLElement | null>(null)
 const savingsInView = useInView(savingsRef, { once: true })
 const activeRef = ref<HTMLElement | null>(null)
@@ -21,12 +36,6 @@ const { data: goals } = await useFetch<Goal[]>(config.public.apiBaseUrl, {
 const currency = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-})
-
-const currencyFraction = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
 })
 
 const totalSavings = computed(() =>
@@ -109,7 +118,6 @@ const { display: displayCompleted } = useCountUp(() => completedGoals.value.leng
     format: "number",
     trigger: completedInView,
 })
-// TODO: Add reduced motion
 </script>
 
 <template>
@@ -164,17 +172,57 @@ const { display: displayCompleted } = useCountUp(() => completedGoals.value.leng
                     :variants="containerVariants" initial="hidden" while-in-view="visible"
                     :in-view-options="{ once: true }">
                     <h2 class="preset-2">Your goals</h2>
-                    <div class="flex gap-2">
-                        <BaseButton intent="secondary" class="flex-1 md:flex-initial">
-                            <template #icon>
-                                <img :src="Filter" alt="">
-                            </template>Filters
-                        </BaseButton>
-                        <BaseButton intent="secondary" class="flex-1 md:flex-initial">
-                            <template #icon>
-                                <img :src="Sort" alt="">
-                            </template>Sort by
-                        </BaseButton>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <div ref="filterTarget" class="md:relative flex-1 md:flex-initial">
+                            <BaseButton intent="secondary" class="w-full" @click="isFilterOpen = !isFilterOpen">
+                                <template #icon>
+                                    <img :src="Filter" alt="">
+                                </template>Filters
+                            </BaseButton>
+                            <DropdownBox :show="isFilterOpen">
+                                <template v-slot:legend>Filter by status</template>
+                                <BaseRadio v-model="filter" name="filter" value="all-goals">
+                                    All goals
+                                </BaseRadio>
+                                <BaseRadio v-model="filter" name="filter" value="in-progress">
+                                    In progress
+                                </BaseRadio>
+                                <BaseRadio v-model="filter" name="filter" value="completed">
+                                    Completed
+                                </BaseRadio>
+                                <BaseRadio v-model="filter" name="filter" value="not-started">
+                                    Not started
+                                </BaseRadio>
+                            </DropdownBox>
+                        </div>
+                        <div ref="sortByTarget" class="md:relative flex-1 md:flex-initial">
+                            <BaseButton intent="secondary" class="w-full" @click="isSortByOpen = !isSortByOpen">
+                                <template #icon>
+                                    <img :src="Sort" alt="">
+                                </template>Sort by
+                            </BaseButton>
+                            <DropdownBox :show="isSortByOpen">
+                                <template v-slot:legend>Filter by status</template>
+                                <BaseRadio v-model="sortBy" name="sort-by" value="recently-added">
+                                    Recently added
+                                </BaseRadio>
+                                <BaseRadio v-model="sortBy" name="sort-by" value="deadline">
+                                    Deadline (soonest first)
+                                </BaseRadio>
+                                <BaseRadio v-model="sortBy" name="sort-by" value="progress-highest">
+                                    Progress (highest first)
+                                </BaseRadio>
+                                <BaseRadio v-model="sortBy" name="sort-by" value="progress-lowest">
+                                    Progress (lowest first)
+                                </BaseRadio>
+                                <BaseRadio v-model="sortBy" name="sort-by" value="amount-saved">
+                                    Amount saved (highest first)
+                                </BaseRadio>
+                                <BaseRadio v-model="sortBy" name="sort-by" value="alphabetical">
+                                    Alphabetical (A-Z)
+                                </BaseRadio>
+                            </DropdownBox>
+                        </div>
                     </div>
                 </motion.div>
                 <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3 lg:grid-flow-row-dense">
