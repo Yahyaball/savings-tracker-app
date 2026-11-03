@@ -241,7 +241,7 @@ const sortedGoals = computed(() => {
                                 </template>Sort by
                             </BaseButton>
                             <DropdownBox :show="isSortByOpen">
-                                <template v-slot:legend>Filter by status</template>
+                                <template v-slot:legend>Sort by</template>
                                 <BaseRadio v-model="sortBy" name="sort-by" value="recently-added">
                                     Recently added
                                 </BaseRadio>
