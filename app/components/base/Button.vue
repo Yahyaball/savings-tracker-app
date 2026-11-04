@@ -54,11 +54,15 @@ const props = withDefaults(
         intent?: ButtonVariants['intent']
         disabled?: boolean,
         type?: 'button' | 'submit' | 'reset'
+        baseClass?: string
+        iconClass?: string
     }>(),
     {
         intent: undefined,
         disabled: undefined,
         type: 'button',
+        baseClass: '',
+        iconClass: ''
     }
 )
 
@@ -66,8 +70,8 @@ const styles = computed(() => buttonStyles({ intent: props.intent, disabled: pro
 </script>
 
 <template>
-    <button :type="type" :disabled="disabled" :class="styles.base()">
-        <span v-if="$slots.icon" :class="styles.icon()">
+    <button :type="type" :disabled="disabled" :class="styles.base({ class: baseClass })">
+        <span v-if="$slots.icon" :class="styles.icon({ class: iconClass })">
             <slot name="icon" />
         </span>
         <slot />
