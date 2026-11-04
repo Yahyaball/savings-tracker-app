@@ -3,6 +3,8 @@ import type { Goal } from '~/types/savings'
 import { goalSaved } from '~/utils/savings'
 import Filter from '../assets/images/icon-filter.svg'
 import Sort from '../assets/images/icon-sort.svg'
+import Target from '../assets/images/icon-target.svg'
+import Plus from '../assets/images/icon-plus.svg'
 import { motion, useInView } from 'motion-v'
 import { ref } from 'vue'
 
@@ -31,11 +33,6 @@ const { data: goals } = await useFetch<Goal[]>(config.public.apiBaseUrl, {
     onResponseError({ response }) {
         console.error('Fetch failed with status:', response.status)
     }
-})
-
-const currency = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
 })
 
 const totalSavings = computed(() =>
@@ -271,9 +268,27 @@ const sortedGoals = computed(() => {
                         </div>
                     </div>
                 </motion.div>
-                <div v-if="((goals ?? []).length === 0)">
-
-                </div>
+                <motion.section v-if="((goals ?? []).length === 0)"
+                    class="flex flex-col gap-4 px-2 py-5 text-center items-center border border-dashed border-neutral-600 rounded-2xl"
+                    :variants="containerVariants" initial="hidden" while-in-view="visible"
+                    :in-view-options="{ once: true }">
+                    <div class="flex flex-col gap-2.5 items-center">
+                        <img :src="Target" alt="">
+                        <h3 class="preset-2">No goals yet</h3>
+                        <p class="preset-5 text-neutral-300 max-w-64">Start saving for something that matters. Create
+                            your first
+                            goal and track
+                            your progress.</p>
+                    </div>
+                    <div>
+                        <BaseButton intent="primary" type="button">
+                            <template #icon>
+                                <img :src="Plus" alt="">
+                            </template>
+                            Create your first goal
+                        </BaseButton>
+                    </div>
+                </motion.section>
                 <div v-else v-auto-animate class="grid gap-3 md:grid-cols-2 lg:grid-cols-3 lg:grid-flow-row-dense">
                     <GoalCard v-for="(goal, index) in sortedGoals" :key="goal.id" :name="goal.name"
                         :amount="goalSaved(goal)" :deadline="goal.deadline" :target="goal.target"
