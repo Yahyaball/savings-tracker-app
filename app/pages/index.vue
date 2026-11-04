@@ -292,7 +292,7 @@ const sortedGoals = computed(() => {
                 <div v-else v-auto-animate class="grid gap-3 md:grid-cols-2 lg:grid-cols-3 lg:grid-flow-row-dense">
                     <GoalCard v-for="(goal, index) in sortedGoals" :key="goal.id" :name="goal.name"
                         :amount="goalSaved(goal)" :deadline="goal.deadline" :target="goal.target"
-                        :size="getCardSize(index)" />
+                        :size="getCardSize(index)" :slug="goal.id" />
                 </div>
             </div>
         </main>

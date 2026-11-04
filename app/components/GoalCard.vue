@@ -60,6 +60,7 @@ const props = defineProps<{
     deadline: string | null
     target: number
     size?: CardVariants['size']
+    slug: string
 }>()
 
 const currency = new Intl.NumberFormat('en-US', {
@@ -161,30 +162,32 @@ const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
 </script>
 
 <template>
-    <motion.section ref="sectionRef" :class="styles.base()" :variants="containerVariants" initial="hidden"
-        while-in-view="visible" :in-view-options="{ once: true }">
-        <h3 class="flex justify-between preset-4">{{ name }}
-            <motion.span v-if="isFull" :class="styles.complete()" :variants="badgeVariants">
-                Complete
-            </motion.span>
-        </h3>
-        <div class="flex flex-col gap-2 grow justify-end">
-            <motion.p role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="percentageValue"
-                :aria-valuetext="`${percentageValue}% of goal`" :class="styles.percentage()">
-                {{ displayPercentage }}
-            </motion.p>
-            <div :class="styles.progress()">
-                <motion.div :class="styles.innerProgress()" :variants="progressVariants" :custom="percentage" />
+    <NuxtLink :to="`/goals/${slug}`">
+        <motion.section ref="sectionRef" :class="styles.base()" :variants="containerVariants" initial="hidden"
+            while-in-view="visible" :in-view-options="{ once: true }">
+            <h3 class="flex justify-between preset-4">{{ name }}
+                <motion.span v-if="isFull" :class="styles.complete()" :variants="badgeVariants">
+                    Complete
+                </motion.span>
+            </h3>
+            <div class="flex flex-col gap-2 grow justify-end">
+                <motion.p role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="percentageValue"
+                    :aria-valuetext="`${percentageValue}% of goal`" :class="styles.percentage()">
+                    {{ displayPercentage }}
+                </motion.p>
+                <div :class="styles.progress()">
+                    <motion.div :class="styles.innerProgress()" :variants="progressVariants" :custom="percentage" />
+                </div>
             </div>
-        </div>
-        <p class="flex items-center gap-1">
-            <span class="sr-only">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
-            <span :class="styles.amount()" aria-hidden="true">{{ displayAmount }} of {{ currency.format(target)
-                }}</span>
-            <span :class="styles.circle()" aria-hidden="true" />
-            <span :class="styles.due()">
-                {{ formattedDeadline }}
-            </span>
-        </p>
-    </motion.section>
+            <p class="flex items-center gap-1">
+                <span class="sr-only">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
+                <span :class="styles.amount()" aria-hidden="true">{{ displayAmount }} of {{ currency.format(target)
+                    }}</span>
+                <span :class="styles.circle()" aria-hidden="true" />
+                <span :class="styles.due()">
+                    {{ formattedDeadline }}
+                </span>
+            </p>
+        </motion.section>
+    </NuxtLink>
 </template>
