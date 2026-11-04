@@ -31,13 +31,13 @@ const buttonStyles = tv({
             intent: 'secondary',
             disabled: true,
             slots: ['base'],
-            class: 'text-neutral-400'
+            class: 'text-neutral-400 hover:bg-neutral-800'
         },
         {
             intent: 'secondary',
             disabled: true,
             slots: ['icon'],
-            class: 'brightness-640 hue-rotate-210 saturate-1'
+            class: 'invert brightness-54 hue-rotate-210 saturate-1'
         },
     ],
     defaultVariants: {

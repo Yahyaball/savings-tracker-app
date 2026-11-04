@@ -180,7 +180,8 @@ const sortedGoals = computed(() => {
                     :variants="containerVariants" initial="hidden" while-in-view="visible"
                     :in-view-options="{ once: true }">
                     <h2 class="preset-5-semibold">Active goals</h2>
-                    <p class="preset-1-mobile text-orange-400 md:preset-1">
+                    <p class="preset-1-mobile md:preset-1"
+                        :class="((goals ?? []).length) === 0 ? 'text-neutral-400' : 'text-orange-400'">
                         <span class="sr-only">{{ activeGoals.length }}</span>
                         <span aria-hidden="true">{{ displayActive }}</span>
                     </p>
@@ -190,7 +191,8 @@ const sortedGoals = computed(() => {
                     :variants="containerVariants" initial="hidden" while-in-view="visible"
                     :in-view-options="{ once: true }">
                     <h2 class="preset-5-semibold">Goals completed</h2>
-                    <p class="preset-1-mobile text-green-500 md:preset-1">
+                    <p class="preset-1-mobile md:preset-1"
+                        :class="((goals ?? []).length) === 0 ? 'text-neutral-400' : 'text-green-500'">
                         <span class="sr-only">{{ completedGoals.length }}</span>
                         <span aria-hidden="true">{{ displayCompleted }}</span>
                     </p>
@@ -200,7 +202,10 @@ const sortedGoals = computed(() => {
                     :variants="containerVariants" initial="hidden" while-in-view="visible"
                     :in-view-options="{ once: true }">
                     <h2 class="preset-4">Monthly deposits</h2>
-                    <div class="grid grid-cols-6 lg:grid-cols-12 gap-[clamp(0.5rem,0.023rem+2.036vw,1rem)]">
+                    <span v-if="((goals ?? []).length === 0) || boxes.every(b => b.total === 0)"
+                        class="h-12.5 flex items-center justify-center text-center text-neutral-300 preset-5">No
+                        deposits yet</span>
+                    <div v-else class="grid grid-cols-6 lg:grid-cols-12 gap-[clamp(0.5rem,0.023rem+2.036vw,1rem)]">
                         <MonthlyDeposit v-for="box in boxes" :key="box.key" :month="box.month" :total="box.total"
                             :height="heightPercentage(box.total)" />
                     </div>
@@ -213,7 +218,8 @@ const sortedGoals = computed(() => {
                     <h2 class="preset-2">Your goals</h2>
                     <div class="flex gap-2 w-full md:w-auto">
                         <div ref="filterTarget" class="md:relative flex-1 md:flex-initial">
-                            <BaseButton intent="secondary" class="w-full" @click="isFilterOpen = !isFilterOpen">
+                            <BaseButton intent="secondary" class="w-full" @click="isFilterOpen = !isFilterOpen"
+                                :disabled="((goals ?? []).length === 0)">
                                 <template #icon>
                                     <img :src="Filter" alt="">
                                 </template>Filters
@@ -235,7 +241,8 @@ const sortedGoals = computed(() => {
                             </DropdownBox>
                         </div>
                         <div ref="sortByTarget" class="md:relative flex-1 md:flex-initial">
-                            <BaseButton intent="secondary" class="w-full" @click="isSortByOpen = !isSortByOpen">
+                            <BaseButton intent="secondary" class="w-full" @click="isSortByOpen = !isSortByOpen"
+                                :disabled="((goals ?? []).length === 0)">
                                 <template #icon>
                                     <img :src="Sort" alt="">
                                 </template>Sort by
@@ -264,7 +271,10 @@ const sortedGoals = computed(() => {
                         </div>
                     </div>
                 </motion.div>
-                <div v-auto-animate class="grid gap-3 md:grid-cols-2 lg:grid-cols-3 lg:grid-flow-row-dense">
+                <div v-if="((goals ?? []).length === 0)">
+
+                </div>
+                <div v-else v-auto-animate class="grid gap-3 md:grid-cols-2 lg:grid-cols-3 lg:grid-flow-row-dense">
                     <GoalCard v-for="(goal, index) in sortedGoals" :key="goal.id" :name="goal.name"
                         :amount="goalSaved(goal)" :deadline="goal.deadline" :target="goal.target"
                         :size="getCardSize(index)" />
