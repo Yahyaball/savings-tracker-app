@@ -5,7 +5,7 @@ import { useCountUp } from '~/composables/useCountUp'
 
 const goalCardStyle = tv({
     slots: {
-        base: 'flex flex-col gap-2 rounded-2xl p-[clamp(1rem,0.523rem+2.036vw,1.5rem)] ring-1 ring-inset lg:nth-[8n+2]:col-start-1 lg:nth-[8n+3]:col-start-2 lg:nth-[8n+4]:col-start-3 lg:nth-[8n+5]:col-start-2 lg:nth-[8n+6]:col-start-2 lg:nth-[8n+7]:col-start-3',
+        base: 'flex flex-col gap-2 rounded-2xl p-[clamp(1rem,0.523rem+2.036vw,1.5rem)] ring-1 ring-inset w-full h-full',
         percentage: 'preset-1-mobile md:preset-1',
         progress: 'relative h-1.5 w-full rounded-[2.5rem]',
         innerProgress: 'absolute h-[inherit] rounded-[inherit] ring-1 ring-inset ring-white/30 bg-[repeating-linear-gradient(-60deg,rgba(0,0,6,0.1),rgba(0,0,0,0.1)_2px,rgba(0,0,0,0)_2px,rgba(0,0,0,0)_8.73px)]',
@@ -162,7 +162,12 @@ const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
 </script>
 
 <template>
-    <NuxtLink :to="`/goals/${slug}`">
+    <NuxtLink :to="`/goals/${slug}`"
+        class="block h-full lg:nth-[8n+2]:col-start-1 lg:nth-[8n+3]:col-start-2 lg:nth-[8n+4]:col-start-3 lg:nth-[8n+5]:col-start-2 lg:nth-[8n+6]:col-start-2 lg:nth-[8n+7]:col-start-3"
+        :class="[
+            size === 'wide' ? 'md:col-span-2' : '',
+            size === 'tall' ? 'md:col-span-2 lg:col-span-1 lg:row-span-2' : ''
+        ]">
         <motion.section ref="sectionRef" :class="styles.base()" :variants="containerVariants" initial="hidden"
             while-in-view="visible" :in-view-options="{ once: true }">
             <h3 class="flex justify-between preset-4">{{ name }}
@@ -182,7 +187,7 @@ const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
             <p class="flex items-center gap-1">
                 <span class="sr-only">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
                 <span :class="styles.amount()" aria-hidden="true">{{ displayAmount }} of {{ currency.format(target)
-                    }}</span>
+                }}</span>
                 <span :class="styles.circle()" aria-hidden="true" />
                 <span :class="styles.due()">
                     {{ formattedDeadline }}

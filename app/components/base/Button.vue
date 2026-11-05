@@ -56,13 +56,15 @@ const props = withDefaults(
         type?: 'button' | 'submit' | 'reset'
         baseClass?: string
         iconClass?: string
+        to?: string | object
     }>(),
     {
         intent: undefined,
         disabled: undefined,
         type: 'button',
         baseClass: '',
-        iconClass: ''
+        iconClass: '',
+        to: undefined
     }
 )
 
@@ -70,10 +72,10 @@ const styles = computed(() => buttonStyles({ intent: props.intent, disabled: pro
 </script>
 
 <template>
-    <button :type="type" :disabled="disabled" :class="styles.base({ class: baseClass })">
+    <NuxtLink :to="to" :type="to ? undefined : type" :disabled="disabled" :class="styles.base({ class: baseClass })">
         <span v-if="$slots.icon" :class="styles.icon({ class: iconClass })">
             <slot name="icon" />
         </span>
         <slot />
-    </button>
+    </NuxtLink>
 </template>

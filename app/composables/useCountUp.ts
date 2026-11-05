@@ -11,7 +11,7 @@ export interface UseCountUpOptions {
   ease?: number[];
   once?: boolean;
   rootMargin?: string;
-  start?: number;
+  start?: MaybeRef<number> | (() => number);
   decimals?: number;
   format?: "number" | "percent" | "currency";
   locale?: string;
@@ -60,7 +60,7 @@ export function useCountUp(
     return isInViewLocal.value;
   });
 
-  const count = useMotionValue(start);
+  const count = useMotionValue(0);
 
   const targetValue = computed(() => {
     let val: number;
@@ -117,18 +117,40 @@ export function useCountUp(
     return `${prefix}${formatted}${suffix}`;
   };
 
-  const display = ref(formatValue(start));
+  let startInit: number = targetValue.value
+  if (typeof start === 'function') {
+    const sv = (start as any)()
+    if (typeof sv === 'number') startInit = sv
+  } else if (start !== undefined) {
+    const sv = unref(start as any)
+    if (typeof sv === 'number') startInit = sv
+  }
+  const display = ref(formatValue(startInit));
 
   useMotionValueEvent(count, "change", (latest) => {
     display.value = formatValue(latest);
   });
 
   const startAnimation = () => {
-    count.set(start);
-    animate(count, targetValue.value, {
-      duration,
-      ease,
-    } as any);
+    let startVal: number = 0
+    if (typeof start === 'function') {
+      startVal = (start as any)()
+    } else if (start !== undefined) {
+      startVal = unref(start as any)
+    }
+    if (typeof startVal === 'number') {
+      count.set(startVal);
+      animate(count as any, targetValue.value, {
+        duration,
+        ease,
+      } as any);
+    } else {
+      count.set(0);
+      animate(count as any, targetValue.value, {
+        duration,
+        ease,
+      } as any);
+    }
   };
 
   watch(

@@ -7,7 +7,11 @@ export default defineNuxtConfig({
     "@nuxt/eslint",
     "@vueuse/nuxt/module",
     "@formkit/auto-animate/nuxt",
+    "motion-v/nuxt",
   ],
+  motionV: {
+    directives: true,
+  },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   css: ["~/assets/css/main.css"],
