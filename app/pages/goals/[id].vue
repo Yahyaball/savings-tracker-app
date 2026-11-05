@@ -3,6 +3,7 @@ import type { Goal } from '~/types/savings'
 import { motion, useInView } from "motion-v"
 import { goalSaved } from '~/utils/savings'
 import ChevronLeft from '../../assets/images/icon-chevron-left.svg'
+import Dollar from '../../assets/images/icon-dollar.svg'
 
 const sectionRef = ref<HTMLElement | null>(null)
 const cardInView = useInView(sectionRef, { once: true })
@@ -19,20 +20,6 @@ const percentageValue = computed(() => {
     const target = goal.value?.target ?? 0
     const p = Math.round((amount / target) * 100)
     return Math.min(Math.max(p, 0), 100)
-})
-
-const remainingValue = computed(() => {
-    if (!goal.value?.target || goal.value?.target <= 0) return 0
-    const amount = goal.value ? (goalSaved(goal.value) ?? 0) : 0
-    const target = goal.value?.target ?? 0
-    return Math.max(0, target - amount)
-})
-
-const remainingCountValue = computed(() => {
-    const amount = goal.value ? (goalSaved(goal.value) ?? 0) : 0
-    const target = goal.value?.target ?? 0
-    if (!target || target <= 0) return 0
-    return target - amount
 })
 
 const { display: displayPercentage } = useCountUp(percentageValue, {
@@ -129,29 +116,42 @@ console.log(goal.value)
                     }) : '' }}</span>
                 </p>
             </div>
-            <motion.section ref="sectionRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
-                :in-view-options="{ once: true }"
-                class="flex flex-col gap-3 p-2 rounded-xl bg-neutral-800 ring-1 ring-inset ring-neutral-600">
-                <div class="flex justify-between items-center">
-                    <p class="preset-1-mobile text-orange-400">{{ displayPercentage }}</p>
-                    <p class="preset-5-semibold text-neutral-300">{{ displayRemaining }} remaining</p>
-                </div>
-                <div class="relative h-1.5 w-full rounded-[2.5rem] bg-neutral-700">
-                    <motion.div
-                        class="absolute h-[inherit] rounded-[inherit] ring-1 ring-inset ring-white/30 bg-[repeating-linear-gradient(-60deg,rgba(0,0,6,0.1),rgba(0,0,0,0.1)_2px,rgba(0,0,0,0)_2px,rgba(0,0,0,0)_8.73px)] bg-orange-400"
-                        :variants="progressVariants" :custom="percentage" />
-                </div>
-                <div class="flex justify-between">
-                    <p class="flex flex-col gap-0.5 preset-6">
-                        <span>{{ displaySaved }}</span>
-                        <span class="text-neutral-300">Saved so far</span>
-                    </p>
-                    <p class="flex flex-col gap-0.5 preset-6 text-end">
-                        <span>of {{ currency.format(goal?.target ?? 0) }}</span>
-                        <span class="text-neutral-300">Target</span>
-                    </p>
-                </div>
-            </motion.section>
+            <div class="flex flex-col gap-3">
+                <motion.section ref="sectionRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
+                    :in-view-options="{ once: true }"
+                    class="flex flex-col gap-3 p-2 rounded-xl bg-neutral-800 ring-1 ring-inset ring-neutral-600">
+                    <div class="flex justify-between items-center">
+                        <p class="preset-1-mobile text-orange-400">{{ displayPercentage }}</p>
+                        <p class="preset-5-semibold text-neutral-300">{{ displayRemaining }} remaining</p>
+                    </div>
+                    <div class="relative h-1.5 w-full rounded-[2.5rem] bg-neutral-700">
+                        <motion.div
+                            class="absolute h-[inherit] rounded-[inherit] ring-1 ring-inset ring-white/30 bg-[repeating-linear-gradient(-60deg,rgba(0,0,6,0.1),rgba(0,0,0,0.1)_2px,rgba(0,0,0,0)_2px,rgba(0,0,0,0)_8.73px)] bg-orange-400"
+                            :variants="progressVariants" :custom="percentage" />
+                    </div>
+                    <div class="flex justify-between">
+                        <p class="flex flex-col gap-0.5 preset-6">
+                            <span>{{ displaySaved }}</span>
+                            <span class="text-neutral-300">Saved so far</span>
+                        </p>
+                        <p class="flex flex-col gap-0.5 preset-6 text-end">
+                            <span>of {{ currency.format(goal?.target ?? 0) }}</span>
+                            <span class="text-neutral-300">Target</span>
+                        </p>
+                    </div>
+                </motion.section>
+                <form
+                    class="flex flex-col gap-2.5 p-2 rounded-xl bg-neutral-800 ring-1 ring-inset ring-neutral-600 preset-4">
+                    <h2>Add deposit</h2>
+                    <div class="flex flex-col gap-2.5">
+                        <BaseInput name="amount" label="Amount" :icon="Dollar" placeholder="0.00" type="number" />
+                        <BaseInput name="note" label="Note (optional)" placeholder="e.g. Monthly savings" type="name" />
+                    </div>
+                    <BaseButton type="submit">
+                        Add funds
+                    </BaseButton>
+                </form>
+            </div>
         </main>
     </div>
 </template>
