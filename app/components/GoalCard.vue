@@ -163,7 +163,7 @@ const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
 
 <template>
     <NuxtLink :to="`/goals/${slug}`"
-        class="block h-full lg:nth-[8n+2]:col-start-1 lg:nth-[8n+3]:col-start-2 lg:nth-[8n+4]:col-start-3 lg:nth-[8n+5]:col-start-2 lg:nth-[8n+6]:col-start-2 lg:nth-[8n+7]:col-start-3"
+        class="block h-full lg:nth-[8n+2]:col-start-1 lg:nth-[8n+3]:col-start-2 lg:nth-[8n+4]:col-start-3 lg:nth-[8n+5]:col-start-2 lg:nth-[8n+6]:col-start-2 lg:nth-[8n+7]:col-start-3 outline-0 rounded-2xl focus-visible:shadow-[0_0_0_4px_var(--color-neutral-900),0_0_0_8px_var(--color-orange-400)]"
         :class="[
             size === 'wide' ? 'md:col-span-2' : '',
             size === 'tall' ? 'md:col-span-2 lg:col-span-1 lg:row-span-2' : ''
@@ -187,7 +187,7 @@ const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
             <p class="flex items-center gap-1">
                 <span class="sr-only">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
                 <span :class="styles.amount()" aria-hidden="true">{{ displayAmount }} of {{ currency.format(target)
-                }}</span>
+                    }}</span>
                 <span :class="styles.circle()" aria-hidden="true" />
                 <span :class="styles.due()">
                     {{ formattedDeadline }}
