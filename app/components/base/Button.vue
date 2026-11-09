@@ -72,7 +72,8 @@ const styles = computed(() => buttonStyles({ intent: props.intent, disabled: pro
 </script>
 
 <template>
-    <NuxtLink :to="to" :type="to ? undefined : type" :disabled="disabled" :class="styles.base({ class: baseClass })">
+    <NuxtLink :to="to" :type="to ? undefined : type" :disabled="disabled" :class="styles.base({ class: baseClass })"
+        tabindex="0">
         <span v-if="$slots.icon" :class="styles.icon({ class: iconClass })">
             <slot name="icon" />
         </span>
