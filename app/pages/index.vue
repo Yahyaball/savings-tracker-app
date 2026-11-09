@@ -160,7 +160,7 @@ const sortedGoals = computed(() => {
     <div>
         <NavigationBar />
         <main
-            class="px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(2rem,1.046rem+4.071vw,3rem)] flex flex-col gap-4 lg:px-10 lg:py-6">
+            class="px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(2rem,1.046rem+4.071vw,3rem)] flex flex-col gap-4 lg:px-10 lg:mx-auto lg:py-6 lg:max-w-180">
             <div class="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
                 <motion.section ref="savingsRef"
                     class="flex flex-col gap-4 p-[clamp(1rem,0.761rem+1.018vw,1.25rem)] rounded-2xl bg-linear-to-l from-orange-400 to-orange-700 ring-1 ring-inset ring-white/30 md:col-span-2"
