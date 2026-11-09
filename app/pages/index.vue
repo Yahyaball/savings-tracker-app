@@ -154,6 +154,17 @@ const sortedGoals = computed(() => {
     }
     return goalsToSort
 })
+
+onKeyStroke('Escape', (e) => {
+    if (isFilterOpen.value === true) {
+        e.preventDefault()
+        isFilterOpen.value = false
+    }
+    if (isSortByOpen.value === true) {
+        e.preventDefault()
+        isSortByOpen.value = false
+    }
+})
 </script>
 
 <template>
@@ -216,7 +227,7 @@ const sortedGoals = computed(() => {
                     <div class="flex gap-2 w-full md:w-auto">
                         <div ref="filterTarget" class="md:relative flex-1 md:flex-initial">
                             <BaseButton intent="secondary" class="w-full" @click="isFilterOpen = !isFilterOpen"
-                                :disabled="((goals ?? []).length === 0)">
+                                @keydown.enter="isFilterOpen = !isFilterOpen" :disabled="((goals ?? []).length === 0)">
                                 <template #icon>
                                     <img :src="Filter" alt="">
                                 </template>Filters
@@ -239,7 +250,7 @@ const sortedGoals = computed(() => {
                         </div>
                         <div ref="sortByTarget" class="md:relative flex-1 md:flex-initial">
                             <BaseButton intent="secondary" class="w-full" @click="isSortByOpen = !isSortByOpen"
-                                :disabled="((goals ?? []).length === 0)">
+                                @keydown.enter="isSortByOpen = !isSortByOpen" :disabled="((goals ?? []).length === 0)">
                                 <template #icon>
                                     <img :src="Sort" alt="">
                                 </template>Sort by
