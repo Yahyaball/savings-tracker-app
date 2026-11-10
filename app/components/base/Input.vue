@@ -8,6 +8,7 @@ withDefaults(defineProps<{
     label?: string
     icon?: string
     placeholder?: string
+    value?: any
 }>(), {
     type: 'text'
 })
@@ -21,7 +22,7 @@ withDefaults(defineProps<{
             <img v-if="icon" :src="icon" alt="">
             <input :type="type" :id="name" :name="name" :placeholder="placeholder"
                 class="preset-5 placeholder-neutral-300 outline-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none w-full"
-                :aria-invalid="errorMsg ? true : false" :aria-describedby="`${name}-error-msg`">
+                :aria-invalid="errorMsg ? true : false" :aria-describedby="`${name}-error-msg`" :value="value">
         </div>
         <span v-if="errorMsg" :id="`${name}-error-msg`" class="flex items-center gap-1 text-red-500 preset-6">
             <img :src="Error" alt="">

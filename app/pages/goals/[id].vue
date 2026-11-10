@@ -4,8 +4,10 @@ import { motion, useInView } from "motion-v"
 import { goalSaved } from '~/utils/savings'
 import ChevronLeft from '../../assets/images/icon-chevron-left.svg'
 import Dollar from '../../assets/images/icon-dollar.svg'
+import Calendar from '../../assets/images/icon-calendar.svg'
 import ArrowDown from '../../assets/images/icon-arrow-down.svg'
 import Checkmark from '../../assets/images/icon-checkmark.svg'
+import type ModalDialog from '~/components/ModalDialog.vue'
 
 const sectionRef = ref<HTMLElement | null>(null)
 const cardInView = useInView(sectionRef, { once: true })
@@ -89,10 +91,54 @@ const createdAt = new Date(goal?.value?.deposits?.at(-1)?.createdAt ?? 0)
 const createdAtDate = computed(() => createdAt.setHours(0, 0, 0, 0))
 const deadline = new Date(goal?.value?.deadline ?? 0)
 const deadlineDate = computed(() => deadline.setHours(0, 0, 0, 0))
-const last = goal?.value?.deposits?.at(-1)?.createdAt
+const deadlineYyyyMmDd = new Intl.DateTimeFormat('sv-SE').format(deadline)
+const dialogEditTarget = ref<InstanceType<typeof ModalDialog>>()
+const showDialogEdit = () => dialogEditTarget.value?.show()
+const closeDialogEdit = () => dialogEditTarget.value?.close()
+const dialogDeleteTarget = ref<InstanceType<typeof ModalDialog>>()
+const showDialogDelete = () => dialogDeleteTarget.value?.show()
+const closeDialogDelete = () => dialogDeleteTarget.value?.close()
 </script>
 <template>
     <div>
+        <ModalDialog ref="dialogEditTarget">
+            <template #title>
+                Edit goal
+            </template>
+            <div class="flex flex-col gap-2.5">
+                <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4"
+                    :value="goal?.name" />
+                <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar"
+                    :value="goal?.target" />
+                <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar"
+                    :value="deadlineYyyyMmDd" />
+            </div>
+            <template #button>
+                <BaseButton intent="secondary" base-class="bg-neutral-700" @click="closeDialogEdit"
+                    @keydown.enter="closeDialogEdit">
+                    Cancel
+                </BaseButton>
+                <BaseButton intent="primary" @click="closeDialogEdit" @keydown.enter="closeDialogEdit">
+                    Save Changes
+                </BaseButton>
+            </template>
+        </ModalDialog>
+        <ModalDialog ref="dialogDeleteTarget" bottom-line>
+            <template #title>
+                Delete {{ goal?.name }}?
+            </template>
+            This will permanently delete this goal and all its deposit history. This cannot be undone.
+            <template #button>
+                <BaseButton intent="secondary" base-class="bg-neutral-700" @click="closeDialogDelete"
+                    @keydown.enter="closeDialogDelete">
+                    Cancel
+                </BaseButton>
+                <BaseButton intent="primary" @click="closeDialogDelete" @keydown.enter="closeDialogDelete"
+                    base-class="bg-red-500">
+                    Delete goal
+                </BaseButton>
+            </template>
+        </ModalDialog>
         <NavigationBar />
         <main
             class="px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(2rem,1.523rem+2.036vw,2.5rem)] flex flex-col gap-4 lg:px-10 lg:mx-auto lg:max-w-180 lg:py-6">
@@ -105,10 +151,12 @@ const last = goal?.value?.deposits?.at(-1)?.createdAt
                         </template>Back
                     </BaseButton>
                     <div class="flex">
-                        <BaseButton intent="tertiary" type="button" base-class="px-1.5">
+                        <BaseButton intent="tertiary" type="button" base-class="px-1.5" @click="showDialogEdit()"
+                            @keydown.enter="showDialogEdit()">
                             Edit goal
                         </BaseButton>
-                        <BaseButton intent="tertiary" type="button" base-class="text-red-500 px-1.5">
+                        <BaseButton intent="tertiary" type="button" base-class="text-red-500 px-1.5"
+                            @click="showDialogDelete()" @keydown.enter="showDialogDelete()">
                             Delete goal
                         </BaseButton>
                     </div>
