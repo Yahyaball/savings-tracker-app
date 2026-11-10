@@ -7,7 +7,6 @@ import Target from '../assets/images/icon-target.svg'
 import Plus from '../assets/images/icon-plus.svg'
 import { motion, useInView } from 'motion-v'
 import { ref } from 'vue'
-
 const filter = ref('all-goals')
 const sortBy = ref('recently-added')
 const isFilterOpen = ref(false)
