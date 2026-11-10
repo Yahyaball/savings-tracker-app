@@ -7,7 +7,6 @@ import Dollar from '../assets/images/icon-dollar.svg'
 import Calendar from '../assets/images/icon-calendar.svg'
 
 const dialogTarget = ref<InstanceType<typeof ModalDialog>>()
-onMounted(() => console.log(dialogTarget.value))
 const isTablet = useMediaQuery('(min-width: 48rem)')
 const showDialog = () => dialogTarget.value?.show()
 const closeDialog = () => dialogTarget.value?.close()

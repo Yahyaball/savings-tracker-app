@@ -90,9 +90,6 @@ const createdAtDate = computed(() => createdAt.setHours(0, 0, 0, 0))
 const deadline = new Date(goal?.value?.deadline ?? 0)
 const deadlineDate = computed(() => deadline.setHours(0, 0, 0, 0))
 const last = goal?.value?.deposits?.at(-1)?.createdAt
-
-console.log(deadlineDate.value)
-console.log(last)
 </script>
 <template>
     <div>
@@ -161,7 +158,7 @@ console.log(last)
                             <p class="flex flex-col gap-1 uppercase">
                                 <span class="preset-2">{{ displayDeposits }}</span>
                                 <span class="preset-5">{{ (goal?.deposits.length ?? 0) === 1 ? 'deposit' : 'deposits'
-                                }}</span>
+                                    }}</span>
                             </p>
                             <div class="h-fill w-px bg-white/30" />
                             <p class="flex flex-col gap-1 uppercase">
