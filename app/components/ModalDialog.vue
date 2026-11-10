@@ -1,7 +1,23 @@
 <script setup lang="ts">
-const dialogRef = ref<HTMLDialogElement | null>(null)
-const showDialog = () => dialogRef.value?.showModal()
-const closeDialog = () => dialogRef.value?.close()
+import { motion } from 'motion-v';
+import type { ComponentPublicInstance } from 'vue';
+
+const open = ref(false)
+const dialogRef = ref<ComponentPublicInstance | null>(null)
+const dialogElement = () => dialogRef.value?.$el as HTMLDialogElement | null
+const showDialog = () => {
+    open.value = true
+    dialogElement()?.showModal()
+}
+const closeDialog = () => {
+    open.value = false
+}
+watch(open, async (isOpen) => {
+    if (isOpen) {
+        await nextTick()
+        dialogElement()?.showModal()
+    }
+})
 defineExpose({
     show: showDialog,
     close: closeDialog
@@ -12,23 +28,34 @@ defineProps<{
 </script>
 
 <template>
-    <dialog ref="dialogRef"
-        class="fixed m-auto inset-0 rounded-2xl text-neutral-0 bg-neutral-800 ring-1 ring-inset ring-neutral-600 w-full md:w-85 backdrop:bg-neutral-900/90">
-        <div class="flex flex-col gap-3 p-4">
-            <p class="preset-4">
-                <slot name="title">
-                </slot>
-            </p>
-            <div v-if="!bottomLine" class="h-px w-full bg-neutral-700" />
-            <form method="dialog" class="flex flex-col gap-3">
-                <slot>
-                </slot>
-                <div v-if="bottomLine" class="h-px w-full bg-neutral-700" />
-                <div class="flex justify-end gap-2">
-                    <slot name="button">
+    <AnimatePresence>
+        <motion.dialog ref="dialogRef" @cancel.prevent="closeDialog()" v-if="open" @close="open = false"
+            class="fixed m-auto inset-0 rounded-2xl text-neutral-0 bg-neutral-800 ring-1 ring-inset ring-neutral-600 w-full md:w-85 backdrop:bg-neutral-900/90"
+            :initial="{ opacity: 0, scale: 0.75, '--backdrop-opacity': 0 }"
+            :animate="{ opacity: 1, scale: 1, '--backdrop-opacity': 1 }"
+            :exit="{ opacity: 0, scale: 0.75, '--backdrop-opacity': 0 }">
+            <div class="flex flex-col gap-3 p-4">
+                <p class="preset-4">
+                    <slot name="title">
                     </slot>
-                </div>
-            </form>
-        </div>
-    </dialog>
+                </p>
+                <div v-if="!bottomLine" class="h-px w-full bg-neutral-700" />
+                <form method="dialog" @submit.prevent class="flex flex-col gap-3">
+                    <slot>
+                    </slot>
+                    <div v-if="bottomLine" class="h-px w-full bg-neutral-700" />
+                    <div class="flex justify-end gap-2">
+                        <slot name="button">
+                        </slot>
+                    </div>
+                </form>
+            </div>
+        </motion.dialog>
+    </AnimatePresence>
 </template>
+
+<style scoped>
+dialog::backdrop {
+    opacity: var(--backdrop-opacity, 1);
+}
+</style>
