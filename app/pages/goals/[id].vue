@@ -10,7 +10,8 @@ import Checkmark from '../../assets/images/icon-checkmark.svg'
 import type ModalDialog from '~/components/ModalDialog.vue'
 
 const sectionRef = ref<HTMLElement | null>(null)
-const cardInView = useInView(sectionRef, { once: true })
+const cardRef = ref<HTMLElement | null>(null)
+const cardInView = useInView(cardRef, { once: true })
 const route = useRoute()
 const config = useRuntimeConfig()
 const { data: goals } = await useFetch<Goal[]>(config.public.apiBaseUrl)
@@ -142,7 +143,8 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
         <NavigationBar />
         <main
             class="px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(2rem,1.523rem+2.036vw,2.5rem)] flex flex-col gap-4 lg:px-10 lg:mx-auto lg:max-w-180 lg:py-6">
-            <div class=" flex flex-col gap-1.25">
+            <motion.div ref="sectionRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
+                :in-view-options="{ once: true }" class="flex flex-col gap-1.25">
                 <div class="flex justify-between">
                     <BaseButton to="/" intent="tertiary" base-class="px-0 text-neutral-400 hover:bg-transparent"
                         icon-class="hue-rotate-210 saturate-1 brightness-54" type="button">
@@ -175,9 +177,9 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                             'numeric', year: 'numeric'
                     }) : '' }}</span>
                 </p>
-            </div>
+            </motion.div>
             <div class="flex flex-col gap-[clamp(2rem,1.046rem+4.071vw,3rem)] lg:flex-row">
-                <motion.section ref="sectionRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
+                <motion.section ref="cardRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
                     :in-view-options="{ once: true }" v-if="(goal ? goalSaved(goal) : 0) >= (goal?.target ?? 0)"
                     class="flex flex-col gap-5 px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-5 rounded-2xl bg-linear-to-l from-orange-400 to-orange-700 ring-1 ring-inset ring-white/30 lg:flex-1">
                     <div
@@ -206,7 +208,7 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                             <p class="flex flex-col gap-1 uppercase">
                                 <span class="preset-2">{{ displayDeposits }}</span>
                                 <span class="preset-5">{{ (goal?.deposits.length ?? 0) === 1 ? 'deposit' : 'deposits'
-                                    }}</span>
+                                }}</span>
                             </p>
                             <div class="h-fill w-px bg-white/30" />
                             <p class="flex flex-col gap-1 uppercase">
@@ -217,8 +219,8 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                     </div>
                 </motion.section>
                 <div v-else class="flex flex-col gap-3 lg:w-[52.4375rem]">
-                    <motion.section ref="sectionRef" :variants="containerVariants" initial="hidden"
-                        while-in-view="visible" :in-view-options="{ once: true }"
+                    <motion.section ref="cardRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
+                        :in-view-options="{ once: true }"
                         class="flex flex-col gap-3 p-[clamp(1rem,0.523rem+2.036vw,1.5rem)] rounded-xl bg-neutral-800 ring-1 ring-inset ring-neutral-600">
                         <div class="flex justify-between items-center">
                             <p class="preset-1-mobile md:preset-1 text-orange-400">{{ displayPercentage }}</p>
@@ -241,7 +243,8 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                             </p>
                         </div>
                     </motion.section>
-                    <form
+                    <motion.form ref="sectionRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
+                        :in-view-options="{ once: true }"
                         class="flex flex-col gap-2.5 p-[clamp(1rem,0.523rem+2.036vw,1.5rem)] rounded-xl bg-neutral-800 ring-1 ring-inset ring-neutral-600 preset-4">
                         <h2>Add deposit</h2>
                         <div class="flex flex-col gap-2.5">
@@ -252,9 +255,10 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                         <BaseButton type="submit">
                             Add funds
                         </BaseButton>
-                    </form>
+                    </motion.form>
                 </div>
-                <div class="flex flex-col gap-2 lg:w-[24.5625rem]">
+                <motion.div ref="sectionRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
+                    :in-view-options="{ once: true }" class="flex flex-col gap-2 lg:w-[24.5625rem]">
                     <div class="flex justify-between items-center">
                         <h2 class="preset-4">Deposit history</h2>
                         <p class="preset-6 text-neutral-300">{{ goal?.deposits.length ?? 0 }} {{ (goal?.deposits.length
@@ -264,7 +268,9 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                     </div>
                     <div>
                         <div class="w-full bg-neutral-800 h-px" />
-                        <div v-for="g in (goal?.deposits ?? []).slice().reverse()"
+                        <motion.div ref="sectionRef" :variants="containerVariants" initial="hidden"
+                            while-in-view="visible" :in-view-options="{ once: true }"
+                            v-for="g in (goal?.deposits ?? []).slice().reverse()"
                             class="flex items-center gap-1.25 py-2">
                             <div class="size-5 flex items-center justify-center rounded-full bg-neutral-800">
                                 <img :src="ArrowDown" alt="">
@@ -279,9 +285,9 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                                     }) : '' }}</p>
                             </div>
                             <p class="preset-5-semibold text-green-500">+{{ currency.format(g.amount ?? 0) }}</p>
-                        </div>
+                        </motion.div>
                     </div>
-                </div>
+                </motion.div>
             </div>
         </main>
     </div>
