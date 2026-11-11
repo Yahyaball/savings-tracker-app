@@ -13,8 +13,7 @@ const sectionRef = ref<HTMLElement | null>(null)
 const cardRef = ref<HTMLElement | null>(null)
 const cardInView = useInView(cardRef, { once: true })
 const route = useRoute()
-const config = useRuntimeConfig()
-const { data: goals } = await useFetch<Goal[]>(config.public.apiBaseUrl)
+const { data: goals } = await useFetch<Goal[]>('/api/goals')
 
 const goalId = route.params.id as string
 const goal = computed(() => (goals.value ?? []).find((g) => g.id === goalId))

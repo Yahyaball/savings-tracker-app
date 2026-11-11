@@ -27,8 +27,7 @@ const activeRef = ref<HTMLElement | null>(null)
 const activeInView = useInView(activeRef, { once: true })
 const completedRef = ref<HTMLElement | null>(null)
 const completedInView = useInView(completedRef, { once: true })
-const config = useRuntimeConfig()
-const { data: goals } = await useFetch<Goal[]>(config.public.apiBaseUrl, {
+const { data: goals } = await useFetch<Goal[]>('/api/goals', {
     onResponseError({ response }) {
         console.error('Fetch failed with status:', response.status)
     }
