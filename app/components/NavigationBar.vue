@@ -5,29 +5,56 @@ import Plus from '../assets/images/icon-plus.svg'
 import type ModalDialog from './ModalDialog.vue'
 import Dollar from '../assets/images/icon-dollar.svg'
 import Calendar from '../assets/images/icon-calendar.svg'
+import { FetchError } from 'ofetch'
 
 const dialogTarget = ref<InstanceType<typeof ModalDialog>>()
 const isTablet = useMediaQuery('(min-width: 48rem)')
 const showDialog = () => dialogTarget.value?.show()
 const closeDialog = () => dialogTarget.value?.close()
+const goalName = ref('')
+const goalTarget = ref('')
+const goalDeadline = ref('')
+const nameError = ref('')
+const targetError = ref('')
+const handleSubmit = async () => {
+    nameError.value = ''
+    targetError.value = ''
+    try {
+        await $fetch('/api/goals', { method: 'POST', body: { name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null } })
+        refreshNuxtData('goals')
+        closeDialog()
+    } catch (error) {
+        if (!(error instanceof FetchError)) {
+            console.error(error)
+            return
+        }
+        const issues = JSON.parse(error.data.message)
+        for (const issue of issues) {
+            if (issue.path[0] === 'name') nameError.value = issue.message
+            if (issue.path[0] === 'target') targetError.value = issue.message
+        }
+    }
+}
 </script>
 
 <template>
-    <ModalDialog ref="dialogTarget">
+    <ModalDialog ref="dialogTarget" @submit="handleSubmit">
         <template #title>
             New goal
         </template>
         <div class="flex flex-col gap-2.5">
-            <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4" />
-            <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar" />
-            <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar" />
+            <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4" v-model="goalName"
+                :error-msg="nameError" />
+            <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar"
+                v-model="goalTarget" :error-msg="targetError" />
+            <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar"
+                v-model="goalDeadline" />
         </div>
         <template #button>
-            <BaseButton intent="secondary" base-class="bg-neutral-700" @click="closeDialog"
-                @keydown.enter="closeDialog">
+            <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialog">
                 Cancel
             </BaseButton>
-            <BaseButton intent="primary" @click="closeDialog" @keydown.enter="closeDialog">
+            <BaseButton type="submit" intent="primary">
                 Create goal
             </BaseButton>
         </template>
@@ -38,7 +65,7 @@ const closeDialog = () => dialogTarget.value?.close()
             <ClientOnly>
                 <img :src="isTablet ? LogoLarge : LogoSmall" alt="Savings Tracker">
             </ClientOnly>
-            <BaseButton intent="primary" type="button" @click="showDialog()" @keydown.enter="showDialog()">
+            <BaseButton intent="primary" type="button" @click="showDialog()">
                 <template #icon>
                     <img :src="Plus" alt="">
                 </template>

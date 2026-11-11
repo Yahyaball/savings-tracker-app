@@ -1,4 +1,5 @@
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  return $fetch(config.apiBaseUrl);
+  const goals = await $fetch<{ id: string }[]>(config.apiBaseUrl);
+  return goals.map((g) => ({ ...g, id: toPublicId(g.id) }));
 });

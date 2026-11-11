@@ -25,6 +25,7 @@ defineExpose({
 defineProps<{
     bottomLine?: boolean
 }>()
+const emit = defineEmits(['submit'])
 </script>
 
 <template>
@@ -40,7 +41,7 @@ defineProps<{
                     </slot>
                 </p>
                 <div v-if="!bottomLine" class="h-px w-full bg-neutral-700" />
-                <form method="dialog" @submit.prevent class="flex flex-col gap-3">
+                <form novalidate method="dialog" @submit.prevent="emit('submit', $event)" class="flex flex-col gap-3">
                     <slot>
                     </slot>
                     <div v-if="bottomLine" class="h-px w-full bg-neutral-700" />
