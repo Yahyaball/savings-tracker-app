@@ -8,12 +8,13 @@ import Calendar from '../../assets/images/icon-calendar.svg'
 import ArrowDown from '../../assets/images/icon-arrow-down.svg'
 import Checkmark from '../../assets/images/icon-checkmark.svg'
 import type ModalDialog from '~/components/ModalDialog.vue'
+import { FetchError } from 'ofetch'
 
 const sectionRef = ref<HTMLElement | null>(null)
 const cardRef = ref<HTMLElement | null>(null)
 const cardInView = useInView(cardRef, { once: true })
 const route = useRoute()
-const { data: goals } = await useFetch<Goal[]>('/api/goals')
+const { data: goals } = await useFetch<Goal[]>('/api/goals', { key: 'goals' })
 
 const goalId = route.params.id as string
 const goal = computed(() => (goals.value ?? []).find((g) => g.id === goalId))
@@ -98,6 +99,35 @@ const closeDialogEdit = () => dialogEditTarget.value?.close()
 const dialogDeleteTarget = ref<InstanceType<typeof ModalDialog>>()
 const showDialogDelete = () => dialogDeleteTarget.value?.show()
 const closeDialogDelete = () => dialogDeleteTarget.value?.close()
+const depositAmount = ref('')
+const depositNote = ref('')
+const amountError = ref('')
+const addDisabled = ref(false)
+
+const handleAddDeposit = async () => {
+    amountError.value = ''
+    addDisabled.value = true
+    try {
+        await $fetch(`/api/goals/${goalId}/deposits`, {
+            method: 'POST',
+            body: { amount: Number(depositAmount.value), note: depositNote.value }
+        })
+    } catch (error) {
+        if (!(error instanceof FetchError)) {
+            console.error(error)
+            return
+        }
+        const issues = JSON.parse(error.data.message)
+        for (const issue of issues) {
+            if (issue.path[0] === 'amount') amountError.value = issue.message
+        }
+    } finally {
+        depositAmount.value = ''
+        depositNote.value = ''
+        refreshNuxtData('goals')
+        addDisabled.value = false
+    }
+}
 </script>
 <template>
     <div>
@@ -207,7 +237,7 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                             <p class="flex flex-col gap-1 uppercase">
                                 <span class="preset-2">{{ displayDeposits }}</span>
                                 <span class="preset-5">{{ (goal?.deposits.length ?? 0) === 1 ? 'deposit' : 'deposits'
-                                }}</span>
+                                    }}</span>
                             </p>
                             <div class="h-fill w-px bg-white/30" />
                             <p class="flex flex-col gap-1 uppercase">
@@ -242,16 +272,17 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
                             </p>
                         </div>
                     </motion.section>
-                    <motion.form ref="sectionRef" :variants="containerVariants" initial="hidden" while-in-view="visible"
-                        :in-view-options="{ once: true }"
+                    <motion.form @submit.prevent="handleAddDeposit" ref="sectionRef" :variants="containerVariants"
+                        initial="hidden" while-in-view="visible" :in-view-options="{ once: true }"
                         class="flex flex-col gap-2.5 p-[clamp(1rem,0.523rem+2.036vw,1.5rem)] rounded-xl bg-neutral-800 ring-1 ring-inset ring-neutral-600 preset-4">
                         <h2>Add deposit</h2>
                         <div class="flex flex-col gap-2.5">
-                            <BaseInput name="amount" label="Amount" :icon="Dollar" placeholder="0.00" type="number" />
+                            <BaseInput name="amount" label="Amount" :icon="Dollar" placeholder="0.00" type="number"
+                                v-model="depositAmount" :error-msg="amountError" />
                             <BaseInput name="note" label="Note (optional)" placeholder="e.g. Monthly savings"
-                                type="name" />
+                                type="name" v-model="depositNote" />
                         </div>
-                        <BaseButton type="submit">
+                        <BaseButton type="submit" :disabled="addDisabled">
                             Add funds
                         </BaseButton>
                     </motion.form>
