@@ -5,7 +5,9 @@ import Plus from '../assets/images/icon-plus.svg'
 import type ModalDialog from './ModalDialog.vue'
 import Dollar from '../assets/images/icon-dollar.svg'
 import Calendar from '../assets/images/icon-calendar.svg'
+import Spinner from '../assets/images/icon-spinner.svg'
 import { FetchError } from 'ofetch'
+import { motion } from 'motion-v'
 
 const dialogTarget = ref<InstanceType<typeof ModalDialog>>()
 const isTablet = useMediaQuery('(min-width: 48rem)')
@@ -16,9 +18,11 @@ const goalTarget = ref('')
 const goalDeadline = ref('')
 const nameError = ref('')
 const targetError = ref('')
+const createLoading = ref(false)
 const handleSubmit = async () => {
     nameError.value = ''
     targetError.value = ''
+    createLoading.value = true
     try {
         await $fetch('/api/goals', { method: 'POST', body: { name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null } })
         refreshNuxtData('goals')
@@ -33,6 +37,8 @@ const handleSubmit = async () => {
             if (issue.path[0] === 'name') nameError.value = issue.message
             if (issue.path[0] === 'target') targetError.value = issue.message
         }
+    } finally {
+        createLoading.value = false
     }
 }
 </script>
@@ -54,7 +60,11 @@ const handleSubmit = async () => {
             <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialog">
                 Cancel
             </BaseButton>
-            <BaseButton type="submit" intent="primary">
+            <BaseButton type="submit" intent="primary" :disabled="createLoading">
+                <template v-if="createLoading" #icon>
+                    <motion.img :animate="{ rotate: 360 }"
+                        :transition="{ duration: 1, repeat: Infinity, ease: 'linear' }" :src="Spinner" alt="" />
+                </template>
                 Create goal
             </BaseButton>
         </template>

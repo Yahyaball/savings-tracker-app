@@ -7,6 +7,7 @@ import Dollar from '../../assets/images/icon-dollar.svg'
 import Calendar from '../../assets/images/icon-calendar.svg'
 import ArrowDown from '../../assets/images/icon-arrow-down.svg'
 import Checkmark from '../../assets/images/icon-checkmark.svg'
+import Spinner from '../../assets/images/icon-spinner.svg'
 import type ModalDialog from '~/components/ModalDialog.vue'
 import { FetchError } from 'ofetch'
 
@@ -102,11 +103,11 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
 const depositAmount = ref('')
 const depositNote = ref('')
 const amountError = ref('')
-const addDisabled = ref(false)
+const addLoading = ref(false)
 
 const handleAddDeposit = async () => {
     amountError.value = ''
-    addDisabled.value = true
+    addLoading.value = true
     try {
         await $fetch(`/api/goals/${goalId}/deposits`, {
             method: 'POST',
@@ -125,7 +126,7 @@ const handleAddDeposit = async () => {
         depositAmount.value = ''
         depositNote.value = ''
         refreshNuxtData('goals')
-        addDisabled.value = false
+        addLoading.value = false
     }
 }
 </script>
@@ -282,7 +283,12 @@ const handleAddDeposit = async () => {
                             <BaseInput name="note" label="Note (optional)" placeholder="e.g. Monthly savings"
                                 type="name" v-model="depositNote" />
                         </div>
-                        <BaseButton type="submit" :disabled="addDisabled">
+                        <BaseButton intent="primary" type="submit" :disabled="addLoading">
+                            <template v-if="addLoading" #icon>
+                                <motion.img :animate="{ rotate: 360 }"
+                                    :transition="{ duration: 1, repeat: Infinity, ease: 'linear' }" :src="Spinner"
+                                    alt="" />
+                            </template>
                             Add funds
                         </BaseButton>
                     </motion.form>
