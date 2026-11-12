@@ -115,6 +115,7 @@ const editNameError = ref('')
 const editTargetError = ref('')
 const addLoading = ref(false)
 const editLoading = ref(false)
+const deleteLoading = ref(false)
 
 const handleAddDeposit = async () => {
     amountError.value = ''
@@ -148,7 +149,7 @@ const handleEdit = async () => {
     try {
         await $fetch(`/api/goals/${goalId}`, {
             method: 'PUT',
-            body: { name: editName.value, target: Number(editTarget.value), deadline: editDeadline.value }
+            body: { name: editName.value, target: Number(editTarget.value), deadline: editDeadline.value || null }
         })
         refreshNuxtData('goals')
         closeDialogEdit()
@@ -164,6 +165,19 @@ const handleEdit = async () => {
         }
     } finally {
         editLoading.value = false
+    }
+}
+
+const handleDelete = async () => {
+    deleteLoading.value = true
+    try {
+        await $fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
+        await refreshNuxtData('goals')
+        await navigateTo('/')
+    } catch (error) {
+        if (!(error instanceof FetchError)) { console.error(error) }
+    } finally {
+        deleteLoading.value = false
     }
 }
 </script>
@@ -195,18 +209,21 @@ const handleEdit = async () => {
                 </BaseButton>
             </template>
         </ModalDialog>
-        <ModalDialog ref="dialogDeleteTarget" bottom-line>
+        <ModalDialog ref="dialogDeleteTarget" bottom-line @submit="handleDelete">
             <template #title>
                 Delete {{ goal?.name }}?
             </template>
             This will permanently delete this goal and all its deposit history. This cannot be undone.
             <template #button>
-                <BaseButton intent="secondary" base-class="bg-neutral-700" @click="closeDialogDelete"
+                <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialogDelete"
                     @keydown.enter="closeDialogDelete">
                     Cancel
                 </BaseButton>
-                <BaseButton intent="primary" @click="closeDialogDelete" @keydown.enter="closeDialogDelete"
-                    base-class="bg-red-500">
+                <BaseButton type="submit" intent="primary" base-class="bg-red-500" :disabled="deleteLoading">
+                    <template v-if="deleteLoading" #icon>
+                        <motion.img :animate="{ rotate: 360 }"
+                            :transition="{ duration: 1, repeat: Infinity, ease: 'linear' }" :src="Spinner" alt="" />
+                    </template>
                     Delete goal
                 </BaseButton>
             </template>
