@@ -5,8 +5,14 @@ import Filter from '../assets/images/icon-filter.svg'
 import Sort from '../assets/images/icon-sort.svg'
 import Target from '../assets/images/icon-target.svg'
 import Plus from '../assets/images/icon-plus.svg'
+import Dollar from '../assets/images/icon-dollar.svg'
+import Calendar from '../assets/images/icon-calendar.svg'
+import Spinner from '../assets/images/icon-spinner.svg'
 import { motion, useInView } from 'motion-v'
 import { ref } from 'vue'
+import { FetchError } from 'ofetch'
+import type ModalDialog from '../components/ModalDialog.vue'
+
 const filter = ref('all-goals')
 const sortBy = ref('recently-added')
 const isFilterOpen = ref(false)
@@ -164,10 +170,66 @@ onKeyStroke('Escape', (e) => {
         isSortByOpen.value = false
     }
 })
+const dialogTarget = ref<InstanceType<typeof ModalDialog>>()
+const goalName = ref('')
+const goalTarget = ref('')
+const goalDeadline = ref('')
+const nameError = ref('')
+const targetError = ref('')
+const createLoading = ref(false)
+const showDialog = () => dialogTarget.value?.show()
+const closeDialog = () => dialogTarget.value?.close()
+const handleSubmit = async () => {
+    nameError.value = ''
+    targetError.value = ''
+    createLoading.value = true
+    try {
+        await $fetch('/api/goals', { method: 'POST', body: { name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null } })
+        refreshNuxtData('goals')
+        closeDialog()
+    } catch (error) {
+        if (!(error instanceof FetchError)) {
+            console.error(error)
+            return
+        }
+        const issues = JSON.parse(error.data.message)
+        for (const issue of issues) {
+            if (issue.path[0] === 'name') nameError.value = issue.message
+            if (issue.path[0] === 'target') targetError.value = issue.message
+        }
+    } finally {
+        createLoading.value = false
+    }
+}
 </script>
 
 <template>
     <div>
+        <ModalDialog ref="dialogTarget" @submit="handleSubmit">
+            <template #title>
+                New goal
+            </template>
+            <div class="flex flex-col gap-2.5">
+                <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4"
+                    v-model="goalName" :error-msg="nameError" />
+                <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar"
+                    v-model="goalTarget" :error-msg="targetError" />
+                <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar"
+                    v-model="goalDeadline" />
+            </div>
+            <template #button>
+                <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialog">
+                    Cancel
+                </BaseButton>
+                <BaseButton type="submit" intent="primary" :disabled="createLoading">
+                    <template v-if="createLoading" #icon>
+                        <motion.img :animate="{ rotate: 360 }"
+                            :transition="{ duration: 1, repeat: Infinity, ease: 'linear' }" :src="Spinner" alt="" />
+                    </template>
+                    Create goal
+                </BaseButton>
+            </template>
+        </ModalDialog>
         <NavigationBar />
         <main
             class="px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(2rem,1.046rem+4.071vw,3rem)] flex flex-col gap-4 lg:px-10 lg:mx-auto lg:py-6 lg:max-w-180">
@@ -291,7 +353,7 @@ onKeyStroke('Escape', (e) => {
                             your progress.</p>
                     </div>
                     <div>
-                        <BaseButton intent="primary" type="button">
+                        <BaseButton intent="primary" type="button" @click="showDialog">
                             <template #icon>
                                 <img :src="Plus" alt="">
                             </template>
