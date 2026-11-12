@@ -138,11 +138,11 @@ const handleAddDeposit = async () => {
             </template>
             <div class="flex flex-col gap-2.5">
                 <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4"
-                    :value="goal?.name" />
+                    :model-value="goal?.name" />
                 <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar"
-                    :value="goal?.target" />
+                    :model-value="goal?.target" />
                 <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar"
-                    :value="deadlineYyyyMmDd" />
+                    :model-value="goal?.deadline ? deadlineYyyyMmDd : undefined" />
             </div>
             <template #button>
                 <BaseButton intent="secondary" base-class="bg-neutral-700" @click="closeDialogEdit"
@@ -238,7 +238,7 @@ const handleAddDeposit = async () => {
                             <p class="flex flex-col gap-1 uppercase">
                                 <span class="preset-2">{{ displayDeposits }}</span>
                                 <span class="preset-5">{{ (goal?.deposits.length ?? 0) === 1 ? 'deposit' : 'deposits'
-                                    }}</span>
+                                }}</span>
                             </p>
                             <div class="h-fill w-px bg-white/30" />
                             <p class="flex flex-col gap-1 uppercase">
