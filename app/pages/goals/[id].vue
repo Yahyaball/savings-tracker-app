@@ -95,7 +95,12 @@ const deadline = new Date(goal?.value?.deadline ?? 0)
 const deadlineDate = computed(() => deadline.setHours(0, 0, 0, 0))
 const deadlineYyyyMmDd = new Intl.DateTimeFormat('sv-SE').format(deadline)
 const dialogEditTarget = ref<InstanceType<typeof ModalDialog>>()
-const showDialogEdit = () => dialogEditTarget.value?.show()
+const showDialogEdit = () => {
+    editName.value = goal.value?.name ?? ''
+    editTarget.value = String(goal.value?.target ?? '')
+    editDeadline.value = goal.value?.deadline ? new Intl.DateTimeFormat('sv-SE').format(new Date(goal.value.deadline)) : ''
+    dialogEditTarget.value?.show()
+}
 const closeDialogEdit = () => dialogEditTarget.value?.close()
 const dialogDeleteTarget = ref<InstanceType<typeof ModalDialog>>()
 const showDialogDelete = () => dialogDeleteTarget.value?.show()
@@ -103,7 +108,13 @@ const closeDialogDelete = () => dialogDeleteTarget.value?.close()
 const depositAmount = ref('')
 const depositNote = ref('')
 const amountError = ref('')
+const editName = ref('')
+const editTarget = ref('')
+const editDeadline = ref('')
+const editNameError = ref('')
+const editTargetError = ref('')
 const addLoading = ref(false)
+const editLoading = ref(false)
 
 const handleAddDeposit = async () => {
     amountError.value = ''
@@ -113,6 +124,7 @@ const handleAddDeposit = async () => {
             method: 'POST',
             body: { amount: Number(depositAmount.value), note: depositNote.value }
         })
+        refreshNuxtData('goals')
     } catch (error) {
         if (!(error instanceof FetchError)) {
             console.error(error)
@@ -125,31 +137,60 @@ const handleAddDeposit = async () => {
     } finally {
         depositAmount.value = ''
         depositNote.value = ''
-        refreshNuxtData('goals')
         addLoading.value = false
+    }
+}
+
+const handleEdit = async () => {
+    editNameError.value = ''
+    editTargetError.value = ''
+    editLoading.value = true
+    try {
+        await $fetch(`/api/goals/${goalId}`, {
+            method: 'PUT',
+            body: { name: editName.value, target: Number(editTarget.value), deadline: editDeadline.value }
+        })
+        refreshNuxtData('goals')
+        closeDialogEdit()
+    } catch (error) {
+        if (!(error instanceof FetchError)) {
+            console.error(error)
+            return
+        }
+        const issues = JSON.parse(error.data.message)
+        for (const issue of issues) {
+            if (issue.path[0] === 'name') editNameError.value = issue.message
+            if (issue.path[0] === 'target') editTargetError.value = issue.message
+        }
+    } finally {
+        editLoading.value = false
     }
 }
 </script>
 <template>
     <div>
-        <ModalDialog ref="dialogEditTarget">
+        <ModalDialog ref="dialogEditTarget" @submit="handleEdit">
             <template #title>
                 Edit goal
             </template>
             <div class="flex flex-col gap-2.5">
                 <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4"
-                    :model-value="goal?.name" />
+                    v-model="editName" :error-msg="editNameError" />
                 <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar"
-                    :model-value="goal?.target" />
+                    v-model="editTarget" :error-msg="editTargetError" />
                 <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar"
-                    :model-value="goal?.deadline ? deadlineYyyyMmDd : undefined" />
+                    v-model="editDeadline" />
             </div>
             <template #button>
-                <BaseButton intent="secondary" base-class="bg-neutral-700" @click="closeDialogEdit"
+                <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialogEdit"
                     @keydown.enter="closeDialogEdit">
                     Cancel
                 </BaseButton>
-                <BaseButton intent="primary" @click="closeDialogEdit" @keydown.enter="closeDialogEdit">
+                <BaseButton type="submit" intent="primary" :disabled="editLoading">
+                    <template v-if="editLoading" #icon>
+                        <motion.img :animate="{ rotate: 360 }"
+                            :transition="{ duration: 1, repeat: Infinity, ease: 'linear' }" :src="Spinner" alt="" />
+                    </template>
                     Save Changes
                 </BaseButton>
             </template>

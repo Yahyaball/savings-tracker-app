@@ -1,11 +1,6 @@
-import { z } from "zod";
+import { GoalInput } from "../utils/goalSchema";
 
 export default defineEventHandler(async (event) => {
-  const GoalInput = z.object({
-    name: z.string().min(1, { message: "Goal name is required" }),
-    target: z.number().gt(0, { message: "Amount must be greater than $0" }),
-    deadline: z.string().nullable().optional(),
-  });
   const body = await readValidatedBody(event, GoalInput.parse);
   const config = useRuntimeConfig(event);
   const created = await $fetch<{ id: string }>(config.apiBaseUrl, {
