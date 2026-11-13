@@ -2,6 +2,15 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    head: {
+      link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+      title: "Savings Tracker",
+      htmlAttrs: {
+        lang: "en",
+      },
+    },
+  },
   modules: [
     "@nuxt/a11y",
     "@nuxt/eslint",

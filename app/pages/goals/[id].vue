@@ -196,6 +196,10 @@ const handleDelete = async () => {
         deleteLoading.value = false
     }
 }
+
+useHead({
+    title: `${goal?.value?.name ? goal.value.name : 'Goal not found'} - Savings Tracker`
+})
 </script>
 <template>
     <div>
