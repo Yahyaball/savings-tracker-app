@@ -2,11 +2,14 @@
 import { motion, useReducedMotion } from 'motion-v';
 import type { ComponentPublicInstance } from 'vue';
 
+const isLocked = useScrollLock(import.meta.client ? document.body : null)
 const shouldReduceMotion = useReducedMotion()
 const open = ref(false)
+watch(open, (isOpen) => { isLocked.value = isOpen })
 const dialogRef = ref<ComponentPublicInstance | null>(null)
 const dialogElement = () => dialogRef.value?.$el as HTMLDialogElement | null
 const showDialog = () => {
+    if (open.value) return
     open.value = true
     dialogElement()?.showModal()
 }

@@ -26,6 +26,9 @@ const handleSubmit = async () => {
     createLoading.value = true
     try {
         await $fetch('/api/goals', { method: 'POST', body: { name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null } })
+        goalName.value = ''
+        goalTarget.value = ''
+        goalDeadline.value = ''
         refreshNuxtData('goals')
         closeDialog()
     } catch (error) {
@@ -33,8 +36,7 @@ const handleSubmit = async () => {
             console.error(error)
             return
         }
-        const issues = JSON.parse(error.data.message)
-        for (const issue of issues) {
+        for (const issue of parseZodIssues(error)) {
             if (issue.path[0] === 'name') nameError.value = issue.message
             if (issue.path[0] === 'target') targetError.value = issue.message
         }
@@ -71,7 +73,7 @@ const handleSubmit = async () => {
             </BaseButton>
         </template>
     </ModalDialog>
-    <header class="min-w-screen shadow-[0_1px_0_0_var(--color-neutral-800)]">
+    <header class="w-full shadow-[0_1px_0_0_var(--color-neutral-800)]">
         <div
             class="flex justify-between px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(0.75rem,0.511rem+1.018vw,1rem)] lg:px-10 lg:mx-auto lg:max-w-180">
             <ClientOnly>

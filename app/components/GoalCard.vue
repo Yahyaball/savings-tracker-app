@@ -2,6 +2,7 @@
 import { tv, type VariantProps } from 'tailwind-variants';
 import { motion, useInView, useReducedMotion } from "motion-v"
 import { useCountUp } from '~/composables/useCountUp'
+import { parseDeadline } from '~/utils/savings'
 
 const shouldReduceMotion = useReducedMotion()
 const goalCardStyle = tv({
@@ -13,7 +14,7 @@ const goalCardStyle = tv({
         amount: 'preset-6',
         circle: 'inline-block size-0.5 rounded-full bg-white/30',
         due: 'preset-6',
-        complete: 'font-inter semi-bold text-[0.6875rem] uppercase px-1.25 py-0.5 rounded-[2.75rem] ring-1 ring-inset h-fit leading-[120%]'
+        complete: 'font-inter font-semibold text-[0.6875rem] uppercase px-1.25 py-0.5 rounded-[2.75rem] ring-1 ring-inset h-fit leading-[120%]'
     },
     variants: {
         size: {
@@ -70,12 +71,7 @@ const currency = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0
 })
 
-const deadlineDate = computed(() => {
-    if (!props.deadline) return null
-    const d = new Date(props.deadline)
-    if (Number.isNaN(d.getTime())) return null
-    return d
-})
+const deadlineDate = computed(() => parseDeadline(props.deadline))
 
 const formattedDeadline = computed(() => {
     if (!deadlineDate.value) return 'No deadline'
@@ -91,7 +87,7 @@ const percentageValue = computed(() => {
     if (!props.target || props.target <= 0) return 0
     const amount = props.amount ?? 0
     const target = props.target ?? 0
-    const p = Math.round((amount / target) * 100)
+    const p = Math.floor((amount / target) * 100)
     return Math.min(Math.max(p, 0), 100)
 })
 
@@ -188,7 +184,7 @@ const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
             <p class="flex items-center gap-1">
                 <span class="sr-only">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
                 <span :class="styles.amount()" aria-hidden="true">{{ displayAmount }} of {{ currency.format(target)
-                    }}</span>
+                }}</span>
                 <span :class="styles.circle()" aria-hidden="true" />
                 <span :class="styles.due()">
                     {{ formattedDeadline }}

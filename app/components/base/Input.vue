@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Error from '../../assets/images/icon-error.svg'
+import ErrorIcon from '../../assets/images/icon-error.svg'
 
 withDefaults(defineProps<{
     name?: string
@@ -8,7 +8,7 @@ withDefaults(defineProps<{
     label?: string
     icon?: string
     placeholder?: string
-    modelValue?: any
+    modelValue?: string
 }>(), {
     type: 'text'
 })
@@ -30,7 +30,7 @@ const emit = defineEmits<{
                 @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)">
         </div>
         <span v-if="errorMsg" :id="`${name}-error-msg`" class="flex items-center gap-1 text-red-500 preset-6">
-            <img :src="Error" alt="">
+            <img :src="ErrorIcon" alt="">
             {{ errorMsg }}
         </span>
     </div>

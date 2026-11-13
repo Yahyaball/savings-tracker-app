@@ -2,6 +2,7 @@
 import type { Goal } from '~/types/savings'
 import { goalSaved } from '~/utils/savings'
 import Filter from '../assets/images/icon-filter.svg'
+import ErrorCross from '../assets/images/icon-error-cross.svg'
 import Sort from '../assets/images/icon-sort.svg'
 import Target from '../assets/images/icon-target.svg'
 import Plus from '../assets/images/icon-plus.svg'
@@ -34,7 +35,7 @@ const activeRef = ref<HTMLElement | null>(null)
 const activeInView = useInView(activeRef, { once: true })
 const completedRef = ref<HTMLElement | null>(null)
 const completedInView = useInView(completedRef, { once: true })
-const { data: goals } = await useFetch<Goal[]>('/api/goals', {
+const { data: goals, error: goalsError, refresh: refreshGoals } = await useFetch<Goal[]>('/api/goals', {
     key: 'goals',
     onResponseError({ response }) {
         console.error('Fetch failed with status:', response.status)
@@ -54,27 +55,30 @@ const completedGoals = computed(() =>
 )
 
 const now = new Date()
-const boxes: { key: string, total: number, month: string }[] = []
-
-for (let i = 11; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const key = date.getFullYear() + '-' + (date.getMonth() + 1)
-    const monthText = Intl.DateTimeFormat('en-US', { month: 'short' }).format(date)
-    boxes.push({ key: key, total: 0, month: monthText })
-}
-for (const goal of (goals.value ?? [])) {
-    for (const deposit of goal.deposits) {
-        const date = new Date(deposit.createdAt)
+const boxes = computed(() => {
+    const result: { key: string, total: number, month: string }[] = []
+    for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
         const key = date.getFullYear() + '-' + (date.getMonth() + 1)
-        const month = boxes.find(item => item.key === key)
-        if (month) {
-            month.total = month.total + deposit.amount
+        const monthText = Intl.DateTimeFormat('en-US', { month: 'short' }).format(date)
+        result.push({ key: key, total: 0, month: monthText })
+    }
+    for (const goal of (goals.value ?? [])) {
+        for (const deposit of goal.deposits) {
+            const date = new Date(deposit.createdAt)
+            const key = date.getFullYear() + '-' + (date.getMonth() + 1)
+            const month = result.find(item => item.key === key)
+            if (month) {
+                month.total = month.total + deposit.amount
+            }
         }
     }
-}
-const maxTotal = Math.max(...boxes.map(box => box.total), 1)
+    return result
+})
+
+const maxTotal = computed(() => Math.max(...boxes.value.map(box => box.total), 1))
 const heightPercentage = (value: number) => {
-    return `${(value / maxTotal) * 100}%`
+    return `${(value / maxTotal.value) * 100}%`
 }
 
 const getCardSize = (index: number): 'default' | 'wide' | 'tall' => {
@@ -158,6 +162,11 @@ const sortedGoals = computed(() => {
     if (sortBy.value === 'alphabetical') {
         return goalsToSort.sort((a, b) => a.name.localeCompare(b.name))
     }
+    if (sortBy.value === 'recently-added') {
+        return goalsToSort.sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+    }
     return goalsToSort
 })
 
@@ -186,6 +195,9 @@ const handleSubmit = async () => {
     createLoading.value = true
     try {
         await $fetch('/api/goals', { method: 'POST', body: { name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null } })
+        goalName.value = ''
+        goalTarget.value = ''
+        goalDeadline.value = ''
         refreshNuxtData('goals')
         closeDialog()
     } catch (error) {
@@ -193,8 +205,7 @@ const handleSubmit = async () => {
             console.error(error)
             return
         }
-        const issues = JSON.parse(error.data.message)
-        for (const issue of issues) {
+        for (const issue of parseZodIssues(error)) {
             if (issue.path[0] === 'name') nameError.value = issue.message
             if (issue.path[0] === 'target') targetError.value = issue.message
         }
@@ -289,7 +300,7 @@ const handleSubmit = async () => {
                     <div class="flex gap-2 w-full md:w-auto">
                         <div ref="filterTarget" class="md:relative flex-1 md:flex-initial">
                             <BaseButton intent="secondary" class="w-full" @click="isFilterOpen = !isFilterOpen"
-                                @keydown.enter="isFilterOpen = !isFilterOpen" :disabled="((goals ?? []).length === 0)">
+                                :disabled="((goals ?? []).length === 0)">
                                 <template #icon>
                                     <img :src="Filter" alt="">
                                 </template>Filters
@@ -312,7 +323,7 @@ const handleSubmit = async () => {
                         </div>
                         <div ref="sortByTarget" class="md:relative flex-1 md:flex-initial">
                             <BaseButton intent="secondary" class="w-full" @click="isSortByOpen = !isSortByOpen"
-                                @keydown.enter="isSortByOpen = !isSortByOpen" :disabled="((goals ?? []).length === 0)">
+                                :disabled="((goals ?? []).length === 0)">
                                 <template #icon>
                                     <img :src="Sort" alt="">
                                 </template>Sort by
@@ -341,7 +352,23 @@ const handleSubmit = async () => {
                         </div>
                     </div>
                 </motion.div>
-                <motion.section v-if="((goals ?? []).length === 0)"
+                <motion.section v-if="goalsError"
+                    class="flex flex-col gap-4 px-2 py-5 text-center items-center border border-dashed border-neutral-600 rounded-2xl"
+                    :variants="containerVariants" initial="hidden" while-in-view="visible"
+                    :in-view-options="{ once: true }">
+                    <div class="flex flex-col gap-2.5 items-center">
+                        <img :src="ErrorCross" alt="">
+                        <h3 class="preset-2">Couldn't load goals</h3>
+                        <p class="preset-5 text-neutral-300 max-w-64">Please check your internet connection and try
+                            again.</p>
+                    </div>
+                    <div>
+                        <BaseButton intent="primary" type="button" @click="refreshGoals()">
+                            Retry
+                        </BaseButton>
+                    </div>
+                </motion.section>
+                <motion.section v-else-if="((goals ?? []).length === 0)"
                     class="flex flex-col gap-4 px-2 py-5 text-center items-center border border-dashed border-neutral-600 rounded-2xl"
                     :variants="containerVariants" initial="hidden" while-in-view="visible"
                     :in-view-options="{ once: true }">
@@ -359,6 +386,28 @@ const handleSubmit = async () => {
                                 <img :src="Plus" alt="">
                             </template>
                             Create your first goal
+                        </BaseButton>
+                    </div>
+                </motion.section>
+                <motion.section v-else-if="sortedGoals.length === 0"
+                    class="flex flex-col gap-4 px-2 py-5 text-center items-center border border-dashed border-neutral-600 rounded-2xl"
+                    :variants="containerVariants" initial="hidden" while-in-view="visible"
+                    :in-view-options="{ once: true }">
+                    <div class="flex flex-col gap-2.5 items-center">
+                        <img :src="Filter" alt="">
+                        <h3 class="preset-2">No goals match this filter</h3>
+                        <p class="preset-5 text-neutral-300 max-w-64">Nothing here with the current filter. Clear it to
+                            see all your goals again.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <BaseButton intent="secondary" type="button" @click="filter = 'all-goals'">
+                            Clear filter
+                        </BaseButton>
+                        <BaseButton intent="primary" type="button" @click="showDialog">
+                            <template #icon>
+                                <img :src="Plus" alt="">
+                            </template>
+                            Create a goal
                         </BaseButton>
                     </div>
                 </motion.section>

@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from "~~/server/utils/apiBaseUrl";
 import { GoalInput } from "~~/server/utils/goalSchema";
 
 export default defineEventHandler(async (event) => {
@@ -6,22 +7,19 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Missing goal id" });
   const rawId = fromPublicId(publicId);
   const body = await readValidatedBody(event, GoalInput.parse);
-  const config = useRuntimeConfig(event);
+  const apiBaseUrl = getApiBaseUrl(event);
   type StoredGoal = {
     createdAt: string;
     deposits: { id: string; amount: number; note: string; createdAt: string }[];
   };
-  const existing = await $fetch<StoredGoal>(`${config.apiBaseUrl}/${rawId}`);
-  const updated = await $fetch<{ id: string }>(
-    `${config.apiBaseUrl}/${rawId}`,
-    {
-      method: "PUT",
-      body: {
-        ...body,
-        createdAt: existing.createdAt,
-        deposits: existing.deposits,
-      },
+  const existing = await $fetch<StoredGoal>(`${apiBaseUrl}/${rawId}`);
+  const updated = await $fetch<{ id: string }>(`${apiBaseUrl}/${rawId}`, {
+    method: "PUT",
+    body: {
+      ...body,
+      createdAt: existing.createdAt,
+      deposits: existing.deposits,
     },
-  );
+  });
   return { ...updated, id: toPublicId(updated.id) };
 });

@@ -8,7 +8,7 @@ import { computed, ref, unref, watch, type MaybeRef } from "vue";
 
 export interface UseCountUpOptions {
   duration?: number;
-  ease?: number[];
+  ease?: [number, number, number, number];
   once?: boolean;
   rootMargin?: string;
   start?: MaybeRef<number> | (() => number);
@@ -117,13 +117,13 @@ export function useCountUp(
     return `${prefix}${formatted}${suffix}`;
   };
 
-  let startInit: number = targetValue.value
-  if (typeof start === 'function') {
-    const sv = (start as any)()
-    if (typeof sv === 'number') startInit = sv
+  let startInit: number = targetValue.value;
+  if (typeof start === "function") {
+    const sv = start();
+    if (typeof sv === "number") startInit = sv;
   } else if (start !== undefined) {
-    const sv = unref(start as any)
-    if (typeof sv === 'number') startInit = sv
+    const sv = unref(start);
+    if (typeof sv === "number") startInit = sv;
   }
   const display = ref(formatValue(startInit));
 
@@ -132,38 +132,35 @@ export function useCountUp(
   });
 
   const startAnimation = () => {
-    let startVal: number = 0
-    if (typeof start === 'function') {
-      startVal = (start as any)()
+    let startVal: number = 0;
+    if (typeof start === "function") {
+      startVal = start();
     } else if (start !== undefined) {
-      startVal = unref(start as any)
+      startVal = unref(start);
     }
-    if (typeof startVal === 'number') {
+    if (typeof startVal === "number") {
       count.set(startVal);
-      animate(count as any, targetValue.value, {
+      animate(count, targetValue.value, {
         duration,
         ease,
-      } as any);
+      });
     } else {
       count.set(0);
-      animate(count as any, targetValue.value, {
+      animate(count, targetValue.value, {
         duration,
         ease,
-      } as any);
+      });
     }
   };
 
-  watch(
-    isInView,
-    (inView) => {
-      if (inView) {
-        startAnimation();
-      }
-    },
-  );
+  watch(isInView, (inView) => {
+    if (inView) {
+      startAnimation();
+    }
+  });
 
   watch(targetValue, () => {
-    if (unref(isInView as any)) {
+    if (unref(isInView)) {
       startAnimation();
     }
   });

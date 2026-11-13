@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { getApiBaseUrl } from "~~/server/utils/apiBaseUrl";
+import { nextDepositId } from "~~/server/utils/depositId";
 
 export default defineEventHandler(async (event) => {
   const DepositInput = z.object({
@@ -6,7 +8,7 @@ export default defineEventHandler(async (event) => {
     note: z.string().optional(),
   });
   const body = await readValidatedBody(event, DepositInput.parse);
-  const config = useRuntimeConfig(event);
+  const apiBaseUrl = getApiBaseUrl(event);
   const publicId = getRouterParam(event, "id");
   if (!publicId)
     throw createError({ statusCode: 400, statusMessage: "Missing goal id" });
@@ -14,19 +16,16 @@ export default defineEventHandler(async (event) => {
   type StoredGoal = {
     deposits: { id: string; amount: number; note: string; createdAt: string }[];
   };
-  const goal = await $fetch<StoredGoal>(`${config.apiBaseUrl}/${rawId}`);
+  const goal = await $fetch<StoredGoal>(`${apiBaseUrl}/${rawId}`);
   const deposit = {
-    id: `dep-${rawId}-${String.fromCharCode(97 + goal.deposits.length)}`,
+    id: nextDepositId(rawId, goal.deposits),
     amount: body.amount,
     note: body.note ?? "",
     createdAt: new Date().toISOString(),
   };
-  const updated = await $fetch<{ id: string }>(
-    `${config.apiBaseUrl}/${rawId}`,
-    {
-      method: "PUT",
-      body: { ...goal, deposits: [...goal.deposits, deposit] },
-    },
-  );
+  const updated = await $fetch<{ id: string }>(`${apiBaseUrl}/${rawId}`, {
+    method: "PUT",
+    body: { ...goal, deposits: [...goal.deposits, deposit] },
+  });
   return { ...updated, id: toPublicId(updated.id) };
 });

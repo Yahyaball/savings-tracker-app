@@ -70,11 +70,16 @@ const props = withDefaults(
 )
 
 const styles = computed(() => buttonStyles({ intent: props.intent, disabled: props.disabled }))
+
+const handleClick = (event: MouseEvent) => {
+    if (props.to && props.disabled) event.preventDefault()
+}
 </script>
 
 <template>
     <component :is="component" :to="to" :type="to ? undefined : type" :disabled="disabled"
-        :class="styles.base({ class: baseClass })" tabindex="0">
+        :class="styles.base({ class: baseClass })" :tabindex="disabled ? -1 : 0" @click="handleClick"
+        :aria-disabled="disabled || undefined">
         <span v-if="$slots.icon" :class="styles.icon({ class: iconClass })">
             <slot name="icon" />
         </span>
