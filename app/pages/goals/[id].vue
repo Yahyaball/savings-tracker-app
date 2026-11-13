@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Goal } from '~/types/savings'
-import { motion, useInView } from "motion-v"
+import { motion, useInView, useReducedMotion } from "motion-v"
 import { goalSaved } from '~/utils/savings'
 import ChevronLeft from '../../assets/images/icon-chevron-left.svg'
 import Dollar from '../../assets/images/icon-dollar.svg'
@@ -11,6 +11,7 @@ import Spinner from '../../assets/images/icon-spinner.svg'
 import type ModalDialog from '~/components/ModalDialog.vue'
 import { FetchError } from 'ofetch'
 
+const shouldReduceMotion = useReducedMotion()
 const sectionRef = ref<HTMLElement | null>(null)
 const cardRef = ref<HTMLElement | null>(null)
 const cardInView = useInView(cardRef, { once: true })
@@ -29,14 +30,14 @@ const percentageValue = computed(() => {
 })
 
 const { display: displayPercentage } = useCountUp(percentageValue, {
-    duration: 0.8,
+    duration: shouldReduceMotion ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "percent",
     trigger: cardInView
 })
 
 const { display: displayRemaining } = useCountUp(computed(() => Math.max(0, (goal.value?.target ?? 0) - (goal.value ? (goalSaved(goal.value) ?? 0) : 0))), {
-    duration: 0.8,
+    duration: shouldReduceMotion ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "currency",
     trigger: cardInView,
@@ -44,14 +45,14 @@ const { display: displayRemaining } = useCountUp(computed(() => Math.max(0, (goa
 } as any)
 
 const { display: displaySaved } = useCountUp(() => goal.value ? goalSaved(goal.value) : 0, {
-    duration: 0.8,
+    duration: shouldReduceMotion ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "currency",
     trigger: cardInView
 })
 
 const { display: displayDeposits } = useCountUp(() => goal.value?.deposits.length ?? 0, {
-    duration: 0.8,
+    duration: shouldReduceMotion ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "number",
     trigger: cardInView
@@ -75,7 +76,7 @@ const progressVariants = {
     visible: (width: string) => ({
         width: width,
         transition: {
-            duration: 0.8,
+            duration: shouldReduceMotion ? 0 : 0.8,
             ease: [0.25, 0.1, 0.25, 1]
         }
     })
@@ -203,7 +204,8 @@ const handleDelete = async () => {
                 <BaseButton type="submit" intent="primary" :disabled="editLoading">
                     <template v-if="editLoading" #icon>
                         <motion.img :animate="{ rotate: 360 }"
-                            :transition="{ duration: 1, repeat: Infinity, ease: 'linear' }" :src="Spinner" alt="" />
+                            :transition="{ duration: shouldReduceMotion ? 0 : 1, repeat: Infinity, ease: 'linear' }"
+                            :src="Spinner" alt="" />
                     </template>
                     Save Changes
                 </BaseButton>
@@ -222,7 +224,8 @@ const handleDelete = async () => {
                 <BaseButton type="submit" intent="primary" base-class="bg-red-500" :disabled="deleteLoading">
                     <template v-if="deleteLoading" #icon>
                         <motion.img :animate="{ rotate: 360 }"
-                            :transition="{ duration: 1, repeat: Infinity, ease: 'linear' }" :src="Spinner" alt="" />
+                            :transition="{ duration: shouldReduceMotion ? 0 : 1, repeat: Infinity, ease: 'linear' }"
+                            :src="Spinner" alt="" />
                     </template>
                     Delete goal
                 </BaseButton>
@@ -294,13 +297,15 @@ const handleDelete = async () => {
                         </div>
                         <div class="flex gap-2.5">
                             <p class="flex flex-col gap-1 uppercase">
-                                <span class="preset-2">{{ displayDeposits }}</span>
+                                <span class="sr-only">{{ goal?.deposits.length ?? 0 }}</span>
+                                <span class="preset-2" aria-hidden="true">{{ displayDeposits }}</span>
                                 <span class="preset-5">{{ (goal?.deposits.length ?? 0) === 1 ? 'deposit' : 'deposits'
                                 }}</span>
                             </p>
                             <div class="h-fill w-px bg-white/30" />
                             <p class="flex flex-col gap-1 uppercase">
-                                <span class="preset-2">{{ displaySaved }}</span>
+                                <span class="sr-only">${{ goal ? goalSaved(goal) : 0 }}</span>
+                                <span class="preset-2" aria-hidden="true">{{ displaySaved }}</span>
                                 <span class="preset-5">total saved</span>
                             </p>
                         </div>
@@ -311,8 +316,15 @@ const handleDelete = async () => {
                         :in-view-options="{ once: true }"
                         class="flex flex-col gap-3 p-[clamp(1rem,0.523rem+2.036vw,1.5rem)] rounded-xl bg-neutral-800 ring-1 ring-inset ring-neutral-600">
                         <div class="flex justify-between items-center">
-                            <p class="preset-1-mobile md:preset-1 text-orange-400">{{ displayPercentage }}</p>
-                            <p class="preset-5-semibold md:preset-4 text-neutral-300">{{ displayRemaining }} remaining
+                            <p class="preset-1-mobile md:preset-1 text-orange-400">
+                                <span class="sr-only">{{ percentageValue }}</span>
+                                <span aria-hidden="true">{{ displayPercentage }}</span>
+                            </p>
+                            <p class="preset-5-semibold md:preset-4 text-neutral-300">
+                                <span class="sr-only">${{ Math.max(0, (goal?.target ?? 0) - (goal ? (goalSaved(goal) ??
+                                    0) :
+                                    0)) }} remaining</span>
+                                <span aria-hidden="true">{{ displayRemaining }} remaining</span>
                             </p>
                         </div>
                         <div class="relative h-1.5 w-full rounded-[2.5rem] bg-neutral-700">
@@ -322,7 +334,8 @@ const handleDelete = async () => {
                         </div>
                         <div class="flex justify-between">
                             <p class="flex flex-col gap-0.5 preset-6">
-                                <span>{{ displaySaved }}</span>
+                                <span class="sr-only">${{ goal ? goalSaved(goal) : 0 }}</span>
+                                <span aria-hidden="true">{{ displaySaved }}</span>
                                 <span class="text-neutral-300">Saved so far</span>
                             </p>
                             <p class="flex flex-col gap-0.5 preset-6 text-end">

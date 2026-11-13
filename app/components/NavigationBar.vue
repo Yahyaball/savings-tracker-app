@@ -7,8 +7,9 @@ import Dollar from '../assets/images/icon-dollar.svg'
 import Calendar from '../assets/images/icon-calendar.svg'
 import Spinner from '../assets/images/icon-spinner.svg'
 import { FetchError } from 'ofetch'
-import { motion } from 'motion-v'
+import { motion, useReducedMotion } from 'motion-v'
 
+const shouldReduceMotion = useReducedMotion()
 const dialogTarget = ref<InstanceType<typeof ModalDialog>>()
 const isTablet = useMediaQuery('(min-width: 48rem)')
 const showDialog = () => dialogTarget.value?.show()
@@ -63,7 +64,8 @@ const handleSubmit = async () => {
             <BaseButton type="submit" intent="primary" :disabled="createLoading">
                 <template v-if="createLoading" #icon>
                     <motion.img :animate="{ rotate: 360 }"
-                        :transition="{ duration: 1, repeat: Infinity, ease: 'linear' }" :src="Spinner" alt="" />
+                        :transition="{ duration: shouldReduceMotion ? 0 : 1, repeat: Infinity, ease: 'linear' }"
+                        :src="Spinner" alt="" />
                 </template>
                 Create goal
             </BaseButton>

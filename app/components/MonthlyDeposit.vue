@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { motion, useInView } from 'motion-v'
+import { motion, useInView, useReducedMotion } from 'motion-v'
 import { useCountUp } from '~/composables/useCountUp'
 
 const props = defineProps<{
@@ -11,9 +11,10 @@ const props = defineProps<{
 
 const el = ref<HTMLElement | null>(null)
 const inView = useInView(el, { once: true })
+const shouldReduceMotion = useReducedMotion()
 
 const { display } = useCountUp(() => props.total ?? 0, {
-  duration: 0.8,
+  duration: shouldReduceMotion ? 0 : 0.8,
   ease: [0.25, 0.1, 0.25, 1],
   format: 'currency',
   minimumFractionDigits: 0,
@@ -26,7 +27,7 @@ const barVariants = {
   visible: (h: string) => ({
     height: h,
     transition: {
-      duration: 0.8,
+      duration: shouldReduceMotion ? 0 : 0.8,
       ease: [0.25, 0.1, 0.25, 1]
     }
   })

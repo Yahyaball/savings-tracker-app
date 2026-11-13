@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { tv, type VariantProps } from 'tailwind-variants';
-import { motion, useInView } from "motion-v"
+import { motion, useInView, useReducedMotion } from "motion-v"
 import { useCountUp } from '~/composables/useCountUp'
 
+const shouldReduceMotion = useReducedMotion()
 const goalCardStyle = tv({
     slots: {
         base: 'flex flex-col gap-2 rounded-2xl p-[clamp(1rem,0.523rem+2.036vw,1.5rem)] ring-1 ring-inset w-full h-full',
@@ -122,11 +123,11 @@ const containerVariants = {
 }
 
 const badgeVariants = {
-    hidden: { scale: 0, opacity: 0 },
+    hidden: { scale: shouldReduceMotion ? 1 : 0, opacity: 0 },
     visible: {
         scale: 1,
         opacity: 1,
-        transition: { type: 'spring', stiffness: 300, damping: 20, delay: 0.8 }
+        transition: { type: 'spring', stiffness: 300, damping: 20, delay: shouldReduceMotion ? 0 : 0.8 }
     }
 }
 
@@ -135,7 +136,7 @@ const progressVariants = {
     visible: (width: string) => ({
         width: width,
         transition: {
-            duration: 0.8,
+            duration: shouldReduceMotion ? 0 : 0.8,
             ease: [0.25, 0.1, 0.25, 1]
         }
     })
@@ -145,14 +146,14 @@ const sectionRef = ref<HTMLElement | null>(null)
 const cardInView = useInView(sectionRef, { once: true })
 
 const { display: displayPercentage } = useCountUp(percentageValue, {
-    duration: 0.8,
+    duration: shouldReduceMotion ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "percent",
     trigger: cardInView
 })
 
 const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
-    duration: 0.8,
+    duration: shouldReduceMotion ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "currency",
     trigger: cardInView,
@@ -187,7 +188,7 @@ const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
             <p class="flex items-center gap-1">
                 <span class="sr-only">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
                 <span :class="styles.amount()" aria-hidden="true">{{ displayAmount }} of {{ currency.format(target)
-                    }}</span>
+                }}</span>
                 <span :class="styles.circle()" aria-hidden="true" />
                 <span :class="styles.due()">
                     {{ formattedDeadline }}
