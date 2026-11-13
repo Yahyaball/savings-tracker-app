@@ -123,11 +123,11 @@ const containerVariants = {
 }
 
 const badgeVariants = {
-    hidden: { scale: shouldReduceMotion ? 1 : 0, opacity: 0 },
+    hidden: { scale: shouldReduceMotion.value ? 1 : 0, opacity: 0 },
     visible: {
         scale: 1,
         opacity: 1,
-        transition: { type: 'spring', stiffness: 300, damping: 20, delay: shouldReduceMotion ? 0 : 0.8 }
+        transition: { type: 'spring', stiffness: 300, damping: 20, delay: shouldReduceMotion.value ? 0 : 0.8 }
     }
 }
 
@@ -136,7 +136,7 @@ const progressVariants = {
     visible: (width: string) => ({
         width: width,
         transition: {
-            duration: shouldReduceMotion ? 0 : 0.8,
+            duration: shouldReduceMotion.value ? 0 : 0.8,
             ease: [0.25, 0.1, 0.25, 1]
         }
     })
@@ -146,14 +146,14 @@ const sectionRef = ref<HTMLElement | null>(null)
 const cardInView = useInView(sectionRef, { once: true })
 
 const { display: displayPercentage } = useCountUp(percentageValue, {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "percent",
     trigger: cardInView
 })
 
 const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "currency",
     trigger: cardInView,
@@ -188,7 +188,7 @@ const { display: displayAmount } = useCountUp(() => props.amount ?? 0, {
             <p class="flex items-center gap-1">
                 <span class="sr-only">{{ currency.format(amount) }} of {{ currency.format(target) }}</span>
                 <span :class="styles.amount()" aria-hidden="true">{{ displayAmount }} of {{ currency.format(target)
-                }}</span>
+                    }}</span>
                 <span :class="styles.circle()" aria-hidden="true" />
                 <span :class="styles.due()">
                     {{ formattedDeadline }}

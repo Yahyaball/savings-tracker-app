@@ -30,14 +30,14 @@ const percentageValue = computed(() => {
 })
 
 const { display: displayPercentage } = useCountUp(percentageValue, {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "percent",
     trigger: cardInView
 })
 
 const { display: displayRemaining } = useCountUp(computed(() => Math.max(0, (goal.value?.target ?? 0) - (goal.value ? (goalSaved(goal.value) ?? 0) : 0))), {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "currency",
     trigger: cardInView,
@@ -45,14 +45,14 @@ const { display: displayRemaining } = useCountUp(computed(() => Math.max(0, (goa
 } as any)
 
 const { display: displaySaved } = useCountUp(() => goal.value ? goalSaved(goal.value) : 0, {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "currency",
     trigger: cardInView
 })
 
 const { display: displayDeposits } = useCountUp(() => goal.value?.deposits.length ?? 0, {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "number",
     trigger: cardInView
@@ -76,7 +76,7 @@ const progressVariants = {
     visible: (width: string) => ({
         width: width,
         transition: {
-            duration: shouldReduceMotion ? 0 : 0.8,
+            duration: shouldReduceMotion.value ? 0 : 0.8,
             ease: [0.25, 0.1, 0.25, 1]
         }
     })
@@ -300,7 +300,7 @@ const handleDelete = async () => {
                                 <span class="sr-only">{{ goal?.deposits.length ?? 0 }}</span>
                                 <span class="preset-2" aria-hidden="true">{{ displayDeposits }}</span>
                                 <span class="preset-5">{{ (goal?.deposits.length ?? 0) === 1 ? 'deposit' : 'deposits'
-                                }}</span>
+                                    }}</span>
                             </p>
                             <div class="h-fill w-px bg-white/30" />
                             <p class="flex flex-col gap-1 uppercase">

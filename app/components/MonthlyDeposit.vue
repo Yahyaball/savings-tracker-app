@@ -14,7 +14,7 @@ const inView = useInView(el, { once: true })
 const shouldReduceMotion = useReducedMotion()
 
 const { display } = useCountUp(() => props.total ?? 0, {
-  duration: shouldReduceMotion ? 0 : 0.8,
+  duration: shouldReduceMotion.value ? 0 : 0.8,
   ease: [0.25, 0.1, 0.25, 1],
   format: 'currency',
   minimumFractionDigits: 0,
@@ -27,7 +27,7 @@ const barVariants = {
   visible: (h: string) => ({
     height: h,
     transition: {
-      duration: shouldReduceMotion ? 0 : 0.8,
+      duration: shouldReduceMotion.value ? 0 : 0.8,
       ease: [0.25, 0.1, 0.25, 1]
     }
   })

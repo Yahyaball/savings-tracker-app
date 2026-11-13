@@ -98,7 +98,7 @@ const containerVariants = {
 }
 
 const { display: displaySavings } = useCountUp(() => totalSavings.value ?? 0, {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "currency",
     trigger: savingsInView,
@@ -107,14 +107,14 @@ const { display: displaySavings } = useCountUp(() => totalSavings.value ?? 0, {
 })
 
 const { display: displayActive } = useCountUp(() => activeGoals.value.length ?? 0, {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "number",
     trigger: activeInView,
 })
 
 const { display: displayCompleted } = useCountUp(() => completedGoals.value.length ?? 0, {
-    duration: shouldReduceMotion ? 0 : 0.8,
+    duration: shouldReduceMotion.value ? 0 : 0.8,
     ease: [0.25, 0.1, 0.25, 1],
     format: "number",
     trigger: completedInView,
