@@ -7,45 +7,56 @@ import { motion, useReducedMotion } from 'motion-v'
 
 definePageMeta({ middleware: 'guest' })
 
+const route = useRoute()
+const { fetchUser } = useAuth()
 const shouldReduceMotion = useReducedMotion()
-const email = ref('')
+const email = ref(typeof route.query.email === 'string' ? route.query.email : '')
 const password = ref('')
 const emailError = ref('')
 const passwordError = ref('')
+const formError = ref('')
 const isLoading = ref(false)
-
 const { $account } = useNuxtApp()
-
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const validate = () => {
     emailError.value = ''
     passwordError.value = ''
+    formError.value = ''
     if (!email.value.trim()) emailError.value = 'Email address is required'
     else if (!emailPattern.test(email.value.trim())) emailError.value = 'Enter a valid email address'
     if (!password.value) passwordError.value = 'Password is required'
     return !emailError.value && !passwordError.value
 }
 
+const redirectTo = computed(() => {
+    const target = route.query.redirect
+    return typeof target === 'string' && target.startsWith('/') && !target.startsWith('//') ? target : '/'
+})
+
 const login = async () => {
     if (!validate()) return
     isLoading.value = true
     try {
         await $account.createEmailPasswordSession({ email: email.value.trim(), password: password.value })
-        await navigateTo('/')
+        await fetchUser()
+        await navigateTo(redirectTo.value)
     } catch (error) {
         if (error instanceof AppwriteException) {
-            if (error.code === 401) {
+            if (error.type === 'user_invalid_credentials') {
                 emailError.value = 'Incorrect email or password'
                 passwordError.value = 'Incorrect email or password'
-            } else if (error.type === 'user_invalid_email') {
-                emailError.value = error.message
+            } else if (error.type === 'user_blocked') {
+                formError.value = 'This account has been blocked. Please contact support.'
+            } else if (error.type === 'user_password_reset_required') {
+                formError.value = 'Your password must be reset before you can sign in. Use "Forgot password?" to choose a new one.'
+            } else if (error.type === 'general_rate_limit_exceeded') {
+                formError.value = 'Too many attempts. Please wait a moment and try again.'
             } else {
-                passwordError.value = error.message
+                formError.value = 'Could not sign in. Please try again.'
             }
         } else {
-            passwordError.value = 'Could not sign in. Please try again.'
-            emailError.value = 'Could not sign in. Please try again.'
+            formError.value = 'Could not sign in. Please try again.'
         }
     } finally {
         isLoading.value = false
@@ -60,19 +71,21 @@ useHead({
 <template>
     <main class="flex py-5 px-2 min-h-dvh lg:p-5">
         <div class="flex gap-10 w-full max-w-170 mx-auto">
-            <figure
-                class="max-lg:hidden relative box-border bg-red-500 w-fit flex-1 bg-linear-to-l from-orange-400 to-orange-700 ring-1 ring-inset ring-white/30 rounded-2xl overflow-hidden">
-                <img :src="Star" alt="" class="absolute size-58 -right-12.25 bottom-[-7.5625rem] select-none"
-                    draggable="false">
-                <div class="h-full flex flex-col p-5">
-                    <blockquote class="flex items-center preset-1 flex-1">
-                        <p>"The goal isn't to be rich. It's to have enough."</p>
-                    </blockquote>
-                    <figcaption class="preset-4">
-                        — Morgan Housel
-                    </figcaption>
-                </div>
-            </figure>
+            <ClientOnly>
+                <figure
+                    class="max-lg:hidden relative box-border bg-red-500 w-fit flex-1 bg-linear-to-l from-orange-400 to-orange-700 ring-1 ring-inset ring-white/30 rounded-2xl overflow-hidden">
+                    <img :src="Star" alt="" class="absolute size-58 -right-12.25 bottom-[-7.5625rem] select-none"
+                        draggable="false">
+                    <div class="h-full flex flex-col p-5">
+                        <blockquote class="flex items-center preset-1 flex-1">
+                            <p>"The goal isn't to be rich. It's to have enough."</p>
+                        </blockquote>
+                        <figcaption class="preset-4">
+                            — Morgan Housel
+                        </figcaption>
+                    </div>
+                </figure>
+            </ClientOnly>
             <div class="m-auto w-full lg:flex-1 max-w-80 lg:max-w-none">
                 <div class="flex flex-col w-full h-fit gap-4 lg:pr-5">
                     <div class="flex flex-col gap-5">
@@ -81,19 +94,21 @@ useHead({
                         </div>
                         <div class="flex flex-col gap-1">
                             <h1 class="preset-2">Welcome back</h1>
-                            <p class="preset-5 text-neutral-300">Sign in to your acccount</p>
+                            <p class="preset-5 text-neutral-300">Sign in to your account</p>
                         </div>
                     </div>
                     <div class="h-px w-full bg-neutral-700" />
                     <form novalidate class="flex flex-col gap-2.5" @submit.prevent="login">
-                        <BaseInput name="email" type="email" label="Email address" v-model="email"
-                            :error-msg="emailError" />
+                        <BaseInput name="email" type="email" label="Email address" autocomplete="email"
+                            v-model="email" :error-msg="emailError" @update:model-value="emailError = ''" />
                         <div class="flex flex-col gap-1.25">
-                            <BaseInput name="password" type="password" label="Password" v-model="password"
-                                :error-msg="passwordError" />
+                            <BaseInput name="password" type="password" label="Password"
+                                autocomplete="current-password" v-model="password" :error-msg="passwordError"
+                                @update:model-value="passwordError = ''" />
                             <NuxtLink to="/forgot-password" class="preset-5 text-end text-neutral-300">Forgot password?
                             </NuxtLink>
                         </div>
+                        <p v-if="formError" class="text-red-500 preset-6">{{ formError }}</p>
                         <BaseButton type="submit" intent="primary" base-class="font-semibold mt-1.5"
                             :disabled="isLoading">
                             <template v-if="isLoading" #icon>

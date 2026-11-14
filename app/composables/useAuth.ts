@@ -1,23 +1,28 @@
 import type { Models } from "appwrite";
 
+let fetchPromise: Promise<Models.User<Models.Preferences> | null> | null = null;
+
 export function useAuth() {
   const { $account } = useNuxtApp();
   const user = useState<Models.User<Models.Preferences> | null>(
     "auth-user",
     () => null,
   );
-  const ready = useState("auth-ready", () => false);
 
   const fetchUser = async () => {
     if (!import.meta.client) return null;
-    try {
-      user.value = await $account.get();
-    } catch {
-      user.value = null;
-    } finally {
-      ready.value = true;
-    }
-    return user.value;
+    if (fetchPromise) return fetchPromise;
+    fetchPromise = (async () => {
+      try {
+        user.value = await $account.get();
+      } catch {
+        user.value = null;
+      }
+      return user.value;
+    })().finally(() => {
+      fetchPromise = null;
+    });
+    return fetchPromise;
   };
 
   const logout = async () => {
@@ -30,5 +35,21 @@ export function useAuth() {
       await navigateTo("/login");
     }
   };
-  return { user, ready, fetchUser, logout };
+
+  const initials = computed(() => {
+    const name = user.value?.name?.trim();
+    if (name) return name.charAt(0).toUpperCase();
+    return user.value?.email?.charAt(0).toUpperCase() ?? "";
+  });
+  const displayName = computed(() => {
+    const name = user.value?.name?.trim();
+    if (name) return name.trim();
+    return user.value?.email?.trim() ?? "";
+  });
+  const email = computed(() => {
+    const email = user.value?.email?.trim();
+    if (email) return email;
+    return "";
+  });
+  return { user, displayName, fetchUser, logout, initials, email };
 }

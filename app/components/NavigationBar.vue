@@ -9,6 +9,8 @@ import Spinner from '../assets/images/icon-spinner.svg'
 import { FetchError } from 'ofetch'
 import { motion, useReducedMotion } from 'motion-v'
 
+const dropdownRef = ref<HTMLElement | null>(null)
+const { user, fetchUser } = useAuth()
 const shouldReduceMotion = useReducedMotion()
 const dialogTarget = ref<InstanceType<typeof ModalDialog>>()
 const isTablet = useMediaQuery('(min-width: 48rem)')
@@ -45,6 +47,22 @@ const handleSubmit = async () => {
         createLoading.value = false
     }
 }
+onMounted(() => {
+    if (!user.value) fetchUser()
+})
+
+onClickOutside(dropdownRef, () => {
+    isDropdownOpen.value = false
+}
+)
+
+onKeyStroke('Escape', (e) => {
+    if (isDropdownOpen.value === true) {
+        e.preventDefault()
+        isDropdownOpen.value = false
+    }
+})
+
 </script>
 
 <template>
@@ -87,9 +105,10 @@ const handleSubmit = async () => {
                     </template>
                     New goal
                 </BaseButton>
-                <div class="relative">
-                    <BaseAvatar class="cursor-pointer" @click="isDropdownOpen = !isDropdownOpen" />
-                    <AvatarDropdown v-if="isDropdownOpen" v-model="isDropdownOpen" />
+                <div class="relative" ref="dropdownRef">
+                    <BaseAvatar class="cursor-pointer" @click="isDropdownOpen = !isDropdownOpen"
+                        aria-label="Account menu" :aria-expanded="isDropdownOpen" />
+                    <AvatarDropdown :show="isDropdownOpen" />
                 </div>
             </div>
         </div>

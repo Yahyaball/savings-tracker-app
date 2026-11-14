@@ -16,6 +16,8 @@ withDefaults(defineProps<{
 const emit = defineEmits<{
     'update:modelValue': [value: string]
 }>()
+
+defineOptions({ inheritAttrs: false })
 </script>
 
 <template>
@@ -26,8 +28,9 @@ const emit = defineEmits<{
             <img v-if="icon" :src="icon" alt="">
             <input :type="type" :id="name" :name="name" :placeholder="placeholder"
                 class="preset-5 placeholder-neutral-300 outline-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none w-full"
-                :aria-invalid="errorMsg ? true : false" :aria-describedby="`${name}-error-msg`" :value="modelValue"
-                @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)">
+                :aria-invalid="errorMsg ? true : false" :aria-describedby="errorMsg ? `${name}-error-msg` : undefined"
+                :value="modelValue" @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+                v-bind="$attrs" />
         </div>
         <span v-if="errorMsg" :id="`${name}-error-msg`" class="flex items-center gap-1 text-red-500 preset-6">
             <img :src="ErrorIcon" alt="">
