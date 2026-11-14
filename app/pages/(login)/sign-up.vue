@@ -5,6 +5,8 @@ import Spinner from '../../assets/images/icon-spinner.svg'
 import { ID, AppwriteException } from 'appwrite'
 import { motion, useReducedMotion } from 'motion-v'
 
+definePageMeta({ middleware: 'guest' })
+
 const shouldReduceMotion = useReducedMotion()
 const { $account } = useNuxtApp()
 const name = ref('')

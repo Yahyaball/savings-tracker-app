@@ -3,6 +3,8 @@ import LogoLarge from '../../assets/images/logo-large.svg'
 import Star from '../../assets/images/pattern-star.svg'
 import ChevronLeft from '../../assets/images/icon-chevron-left.svg'
 
+definePageMeta({ middleware: 'guest' })
+
 useHead({
     title: 'Email Sent - Savings Tracker'
 })

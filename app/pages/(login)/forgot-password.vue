@@ -2,6 +2,8 @@
 import LogoLarge from '../../assets/images/logo-large.svg'
 import Star from '../../assets/images/pattern-star.svg'
 
+definePageMeta({ middleware: 'guest' })
+
 useHead({
     title: 'Forgot Password - Savings Tracker'
 })

@@ -5,6 +5,8 @@ import Spinner from '../../assets/images/icon-spinner.svg'
 import { AppwriteException } from 'appwrite'
 import { motion, useReducedMotion } from 'motion-v'
 
+definePageMeta({ middleware: 'guest' })
+
 const shouldReduceMotion = useReducedMotion()
 const email = ref('')
 const password = ref('')
