@@ -20,6 +20,7 @@ const goalDeadline = ref('')
 const nameError = ref('')
 const targetError = ref('')
 const createLoading = ref(false)
+const isDropdownOpen = ref(false)
 const handleSubmit = async () => {
     nameError.value = ''
     targetError.value = ''
@@ -79,12 +80,18 @@ const handleSubmit = async () => {
             <ClientOnly>
                 <img :src="isTablet ? LogoLarge : LogoSmall" alt="Savings Tracker">
             </ClientOnly>
-            <BaseButton intent="primary" type="button" @click="showDialog()">
-                <template #icon>
-                    <img :src="Plus" alt="">
-                </template>
-                New goal
-            </BaseButton>
+            <div class="flex gap-1 items-center">
+                <BaseButton intent="primary" type="button" @click="showDialog()">
+                    <template #icon>
+                        <img :src="Plus" alt="">
+                    </template>
+                    New goal
+                </BaseButton>
+                <div class="relative">
+                    <BaseAvatar class="cursor-pointer" @click="isDropdownOpen = !isDropdownOpen" />
+                    <AvatarDropdown v-if="isDropdownOpen" v-model="isDropdownOpen" />
+                </div>
+            </div>
         </div>
     </header>
 </template>

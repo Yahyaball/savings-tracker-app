@@ -26,6 +26,13 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   runtimeConfig: {
     apiBaseUrl: process.env.NUXT_API_BASE_URL,
+    public: {
+      appwrite: {
+        endpoint: process.env.APPWRITE_ENDPOINT,
+        projectId: process.env.APPWRITE_PROJECT_ID,
+        projectName: process.env.APPWRITE_PROJECT_NAME,
+      },
+    },
   },
   vite: {
     plugins: [tailwindcss()],

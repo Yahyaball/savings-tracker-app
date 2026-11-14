@@ -1,6 +1,54 @@
 <script setup lang="ts">
 import LogoLarge from '../../assets/images/logo-large.svg'
 import Star from '../../assets/images/pattern-star.svg'
+import Spinner from '../../assets/images/icon-spinner.svg'
+import { AppwriteException } from 'appwrite'
+import { motion, useReducedMotion } from 'motion-v'
+
+const shouldReduceMotion = useReducedMotion()
+const email = ref('')
+const password = ref('')
+const emailError = ref('')
+const passwordError = ref('')
+const isLoading = ref(false)
+
+const { $account } = useNuxtApp()
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const validate = () => {
+    emailError.value = ''
+    passwordError.value = ''
+    if (!email.value.trim()) emailError.value = 'Email address is required'
+    else if (!emailPattern.test(email.value.trim())) emailError.value = 'Enter a valid email address'
+    if (!password.value) passwordError.value = 'Password is required'
+    return !emailError.value && !passwordError.value
+}
+
+const login = async () => {
+    if (!validate()) return
+    isLoading.value = true
+    try {
+        await $account.createEmailPasswordSession({ email: email.value.trim(), password: password.value })
+        await navigateTo('/')
+    } catch (error) {
+        if (error instanceof AppwriteException) {
+            if (error.code === 401) {
+                emailError.value = 'Incorrect email or password'
+                passwordError.value = 'Incorrect email or password'
+            } else if (error.type === 'user_invalid_email') {
+                emailError.value = error.message
+            } else {
+                passwordError.value = error.message
+            }
+        } else {
+            passwordError.value = 'Could not sign in. Please try again.'
+            emailError.value = 'Could not sign in. Please try again.'
+        }
+    } finally {
+        isLoading.value = false
+    }
+}
 
 useHead({
     title: 'Login - Savings Tracker'
@@ -35,14 +83,22 @@ useHead({
                         </div>
                     </div>
                     <div class="h-px w-full bg-neutral-700" />
-                    <form novalidate class="flex flex-col gap-2.5">
-                        <BaseInput name="email" type="email" label="Email address" />
+                    <form novalidate class="flex flex-col gap-2.5" @submit.prevent="login">
+                        <BaseInput name="email" type="email" label="Email address" v-model="email"
+                            :error-msg="emailError" />
                         <div class="flex flex-col gap-1.25">
-                            <BaseInput name="password" type="password" label="Password" />
+                            <BaseInput name="password" type="password" label="Password" v-model="password"
+                                :error-msg="passwordError" />
                             <NuxtLink to="/forgot-password" class="preset-5 text-end text-neutral-300">Forgot password?
                             </NuxtLink>
                         </div>
-                        <BaseButton type="submit" intent="primary" base-class="font-semibold mt-1.5">
+                        <BaseButton type="submit" intent="primary" base-class="font-semibold mt-1.5"
+                            :disabled="isLoading">
+                            <template v-if="isLoading" #icon>
+                                <motion.img :animate="{ rotate: 360 }"
+                                    :transition="{ duration: shouldReduceMotion ? 0 : 1, repeat: Infinity, ease: 'linear' }"
+                                    :src="Spinner" alt="" />
+                            </template>
                             Sign in
                         </BaseButton>
                         <p class="text-center preset-5 text-neutral-300">

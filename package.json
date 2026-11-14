@@ -16,6 +16,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.5",
     "@vueuse/nuxt": "15.0.0",
+    "appwrite": "^29.2.0",
     "eslint": "^10.13.0",
     "motion-v": "^2.9.0",
     "nuxt": "^4.6.2",

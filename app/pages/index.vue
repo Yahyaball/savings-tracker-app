@@ -213,6 +213,8 @@ const handleSubmit = async () => {
         createLoading.value = false
     }
 }
+
+definePageMeta({ middleware: 'auth' })
 </script>
 
 <template>

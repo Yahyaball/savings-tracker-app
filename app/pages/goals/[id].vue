@@ -200,7 +200,10 @@ const handleDelete = async () => {
 useHead({
     title: `${goal?.value?.name ? goal.value.name : 'Goal not found'} - Savings Tracker`
 })
+
+definePageMeta({ middleware: 'auth' })
 </script>
+
 <template>
     <div>
         <ModalDialog ref="dialogEditTarget" @submit="handleEdit">
@@ -320,7 +323,7 @@ useHead({
                                     <span class="preset-2" aria-hidden="true">{{ displayDeposits }}</span>
                                     <span class="preset-5">{{ (goal?.deposits.length ?? 0) === 1 ? 'deposit' :
                                         'deposits'
-                                    }}</span>
+                                        }}</span>
                                 </p>
                                 <div class="h-fill w-px bg-white/30" />
                                 <p class="flex flex-col gap-1 uppercase">
