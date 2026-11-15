@@ -39,11 +39,28 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       appwrite: {
-        endpoint: process.env.APPWRITE_ENDPOINT,
-        projectId: process.env.APPWRITE_PROJECT_ID,
-        projectName: process.env.APPWRITE_PROJECT_NAME,
-        databaseId: process.env.APPWRITE_DATABASE_ID,
-        goalsTableId: process.env.APPWRITE_GOALS_TABLE_ID,
+        endpoint:
+          process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT ||
+          process.env.APPWRITE_ENDPOINT ||
+          process.env.APPWRITE_SITE_API_ENDPOINT ||
+          "",
+        projectId:
+          process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID ||
+          process.env.APPWRITE_PROJECT_ID ||
+          process.env.APPWRITE_SITE_PROJECT_ID ||
+          "",
+        projectName:
+          process.env.NUXT_PUBLIC_APPWRITE_PROJECT_NAME ||
+          process.env.APPWRITE_PROJECT_NAME ||
+          "Savings Tracker",
+        databaseId:
+          process.env.NUXT_PUBLIC_APPWRITE_DATABASE_ID ||
+          process.env.APPWRITE_DATABASE_ID ||
+          "",
+        goalsTableId:
+          process.env.NUXT_PUBLIC_APPWRITE_GOALS_TABLE_ID ||
+          process.env.APPWRITE_GOALS_TABLE_ID ||
+          "goals",
       },
     },
   },
