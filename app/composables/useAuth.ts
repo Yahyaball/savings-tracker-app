@@ -32,8 +32,21 @@ export function useAuth() {
       // session may already be expired
     } finally {
       user.value = null;
+      clearNuxtData("goals");
       await navigateTo("/login");
     }
+  };
+
+  const updateName = async (name: string) => {
+    user.value = await $account.updateName({ name });
+  };
+
+  const updateEmail = async (email: string, password: string) => {
+    user.value = await $account.updateEmail({ email, password });
+  };
+
+  const updatePassword = async (password: string, oldPassword: string) => {
+    user.value = await $account.updatePassword({ password, oldPassword });
   };
 
   const initials = computed(() => {
@@ -51,5 +64,15 @@ export function useAuth() {
     if (email) return email;
     return "";
   });
-  return { user, displayName, fetchUser, logout, initials, email };
+  return {
+    user,
+    displayName,
+    fetchUser,
+    logout,
+    initials,
+    email,
+    updateName,
+    updateEmail,
+    updatePassword,
+  };
 }

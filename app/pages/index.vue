@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Goal } from '~/types/savings'
 import { goalSaved } from '~/utils/savings'
 import Filter from '../assets/images/icon-filter.svg'
 import ErrorCross from '../assets/images/icon-error-cross.svg'
@@ -11,7 +10,6 @@ import Calendar from '../assets/images/icon-calendar.svg'
 import Spinner from '../assets/images/icon-spinner.svg'
 import { motion, useInView, useReducedMotion } from 'motion-v'
 import { ref } from 'vue'
-import { FetchError } from 'ofetch'
 import type ModalDialog from '../components/ModalDialog.vue'
 
 const shouldReduceMotion = useReducedMotion()
@@ -35,12 +33,8 @@ const activeRef = ref<HTMLElement | null>(null)
 const activeInView = useInView(activeRef, { once: true })
 const completedRef = ref<HTMLElement | null>(null)
 const completedInView = useInView(completedRef, { once: true })
-const { data: goals, error: goalsError, refresh: refreshGoals } = await useFetch<Goal[]>('/api/goals', {
-    key: 'goals',
-    onResponseError({ response }) {
-        console.error('Fetch failed with status:', response.status)
-    }
-})
+const { goals, error: goalsError, refresh: refreshGoals, createGoal } = await useGoals()
+const { announce } = useLiveAnnouncer()
 
 const totalSavings = computed(() =>
     (goals.value ?? []).reduce((total, goal) => total + goalSaved(goal), 0),
@@ -77,6 +71,14 @@ const boxes = computed(() => {
 })
 
 const maxTotal = computed(() => Math.max(...boxes.value.map(box => box.total), 1))
+const hasDeposits = computed(() =>
+    (goals.value ?? []).some(goal => goal.deposits.length > 0),
+)
+const chartEmptyMessage = computed(() =>
+    hasDeposits.value
+        ? 'No deposits in the last 12 months'
+        : 'No deposits yet',
+)
 const heightPercentage = (value: number) => {
     return `${(value / maxTotal.value) * 100}%`
 }
@@ -186,29 +188,32 @@ const goalTarget = ref('')
 const goalDeadline = ref('')
 const nameError = ref('')
 const targetError = ref('')
+const deadlineError = ref('')
 const createLoading = ref(false)
 const showDialog = () => dialogTarget.value?.show()
 const closeDialog = () => dialogTarget.value?.close()
 const handleSubmit = async () => {
     nameError.value = ''
     targetError.value = ''
+    deadlineError.value = ''
     createLoading.value = true
     try {
-        await $fetch('/api/goals', { method: 'POST', body: { name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null } })
+        const issues = await createGoal({ name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null })
+        if (issues) {
+            for (const issue of issues) {
+                if (issue.path[0] === 'name') nameError.value = issue.message
+                if (issue.path[0] === 'target') targetError.value = issue.message
+                if (issue.path[0] === 'deadline') deadlineError.value = issue.message
+            }
+            return
+        }
+        announce(`Goal "${goalName.value.trim()}" created`)
         goalName.value = ''
         goalTarget.value = ''
         goalDeadline.value = ''
-        refreshNuxtData('goals')
         closeDialog()
     } catch (error) {
-        if (!(error instanceof FetchError)) {
-            console.error(error)
-            return
-        }
-        for (const issue of parseZodIssues(error)) {
-            if (issue.path[0] === 'name') nameError.value = issue.message
-            if (issue.path[0] === 'target') targetError.value = issue.message
-        }
+        console.error(error)
     } finally {
         createLoading.value = false
     }
@@ -224,12 +229,13 @@ definePageMeta({ middleware: 'auth' })
                 New goal
             </template>
             <div class="flex flex-col gap-2.5">
-                <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4"
+                <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4" autofocus
                     v-model="goalName" :error-msg="nameError" />
                 <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar"
                     v-model="goalTarget" :error-msg="targetError" />
                 <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar"
-                    v-model="goalDeadline" />
+                    v-model="goalDeadline" :error-msg="deadlineError"
+                    @update:model-value="deadlineError = ''" />
             </div>
             <template #button>
                 <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialog">
@@ -286,8 +292,8 @@ definePageMeta({ middleware: 'auth' })
                     :in-view-options="{ once: true }">
                     <h2 class="preset-4">Monthly deposits</h2>
                     <span v-if="((goals ?? []).length === 0) || boxes.every(b => b.total === 0)"
-                        class="h-12.5 flex items-center justify-center text-center text-neutral-300 preset-5">No
-                        deposits yet</span>
+                        class="h-12.5 flex items-center justify-center text-center text-neutral-300 preset-5">{{
+                            chartEmptyMessage }}</span>
                     <div v-else class="grid grid-cols-6 lg:grid-cols-12 gap-[clamp(0.5rem,0.023rem+2.036vw,1rem)]">
                         <MonthlyDeposit v-for="box in boxes" :key="box.key" :month="box.month" :total="box.total"
                             :height="heightPercentage(box.total)" />

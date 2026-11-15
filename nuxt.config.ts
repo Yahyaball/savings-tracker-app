@@ -9,6 +9,14 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: "en",
       },
+      script:
+        process.env.NODE_ENV === "production"
+          ? []
+          : [
+              {
+                innerHTML: `!function(){var c=globalThis.crypto;if(c&&typeof c.randomUUID!=="function"&&typeof c.getRandomValues==="function"){Object.defineProperty(c,"randomUUID",{configurable:true,value:function(){var b=c.getRandomValues(new Uint8Array(16));b[6]=b[6]&15|64;b[8]=b[8]&63|128;var h=Array.prototype.map.call(b,function(x){return x.toString(16).padStart(2,"0")}).join("");return h.slice(0,8)+"-"+h.slice(8,12)+"-"+h.slice(12,16)+"-"+h.slice(16,20)+"-"+h.slice(20)}})}}();`,
+              },
+            ],
     },
   },
   modules: [
@@ -23,14 +31,19 @@ export default defineNuxtConfig({
   },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
+  routeRules: {
+    "/": { ssr: false },
+    "/goals/**": { ssr: false },
+  },
   css: ["~/assets/css/main.css"],
   runtimeConfig: {
-    apiBaseUrl: process.env.NUXT_API_BASE_URL,
     public: {
       appwrite: {
         endpoint: process.env.APPWRITE_ENDPOINT,
         projectId: process.env.APPWRITE_PROJECT_ID,
         projectName: process.env.APPWRITE_PROJECT_NAME,
+        databaseId: process.env.APPWRITE_DATABASE_ID,
+        goalsTableId: process.env.APPWRITE_GOALS_TABLE_ID,
       },
     },
   },

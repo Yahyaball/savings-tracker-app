@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Goal } from '~/types/savings'
 import { motion, useInView, useReducedMotion } from "motion-v"
 import { goalSaved, parseDeadline } from '~/utils/savings'
 import ChevronLeft from '../../assets/images/icon-chevron-left.svg'
@@ -9,13 +8,13 @@ import ArrowDown from '../../assets/images/icon-arrow-down.svg'
 import Checkmark from '../../assets/images/icon-checkmark.svg'
 import Spinner from '../../assets/images/icon-spinner.svg'
 import type ModalDialog from '~/components/ModalDialog.vue'
-import { FetchError } from 'ofetch'
 
 const shouldReduceMotion = useReducedMotion()
 const cardRef = ref<HTMLElement | null>(null)
 const cardInView = useInView(cardRef, { once: true })
 const route = useRoute()
-const { data: goals } = await useFetch<Goal[]>('/api/goals', { key: 'goals' })
+const { goals, status, error: goalsError, refresh: refreshGoals, addDeposit, updateGoal, deleteGoal } = await useGoals()
+const { announce } = useLiveAnnouncer()
 
 const goalId = route.params.id as string
 const goal = computed(() => (goals.value ?? []).find((g) => g.id === goalId))
@@ -117,6 +116,9 @@ const showDialogEdit = () => {
     editName.value = goal.value?.name ?? ''
     editTarget.value = String(goal.value?.target ?? '')
     editDeadline.value = due ? new Intl.DateTimeFormat('sv-SE').format(due) : ''
+    editNameError.value = ''
+    editTargetError.value = ''
+    editDeadlineError.value = ''
     dialogEditTarget.value?.show()
 }
 const closeDialogEdit = () => dialogEditTarget.value?.close()
@@ -131,6 +133,7 @@ const editTarget = ref('')
 const editDeadline = ref('')
 const editNameError = ref('')
 const editTargetError = ref('')
+const editDeadlineError = ref('')
 const addLoading = ref(false)
 const editLoading = ref(false)
 const deleteLoading = ref(false)
@@ -138,22 +141,24 @@ const deleteLoading = ref(false)
 const handleAddDeposit = async () => {
     amountError.value = ''
     addLoading.value = true
+    const amount = Number(depositAmount.value)
+    const goalName = goal.value?.name ?? 'goal'
     try {
-        await $fetch(`/api/goals/${goalId}/deposits`, {
-            method: 'POST',
-            body: { amount: Number(depositAmount.value), note: depositNote.value }
+        const issues = await addDeposit(goalId, {
+            amount,
+            note: depositNote.value
         })
-        depositAmount.value = ''
-        depositNote.value = ''
-        refreshNuxtData('goals')
-    } catch (error) {
-        if (!(error instanceof FetchError)) {
-            console.error(error)
+        if (issues) {
+            for (const issue of issues) {
+                if (issue.path[0] === 'amount') amountError.value = issue.message
+            }
             return
         }
-        for (const issue of parseZodIssues(error)) {
-            if (issue.path[0] === 'amount') amountError.value = issue.message
-        }
+        announce(`Deposit of ${currency.format(amount)} added to "${goalName}"`)
+        depositAmount.value = ''
+        depositNote.value = ''
+    } catch (error) {
+        console.error(error)
     } finally {
         addLoading.value = false
     }
@@ -162,23 +167,26 @@ const handleAddDeposit = async () => {
 const handleEdit = async () => {
     editNameError.value = ''
     editTargetError.value = ''
+    editDeadlineError.value = ''
     editLoading.value = true
     try {
-        await $fetch(`/api/goals/${goalId}`, {
-            method: 'PUT',
-            body: { name: editName.value, target: Number(editTarget.value), deadline: editDeadline.value || null }
+        const issues = await updateGoal(goalId, {
+            name: editName.value,
+            target: Number(editTarget.value),
+            deadline: editDeadline.value || null
         })
-        refreshNuxtData('goals')
-        closeDialogEdit()
-    } catch (error) {
-        if (!(error instanceof FetchError)) {
-            console.error(error)
+        if (issues) {
+            for (const issue of issues) {
+                if (issue.path[0] === 'name') editNameError.value = issue.message
+                if (issue.path[0] === 'target') editTargetError.value = issue.message
+                if (issue.path[0] === 'deadline') editDeadlineError.value = issue.message
+            }
             return
         }
-        for (const issue of parseZodIssues(error)) {
-            if (issue.path[0] === 'name') editNameError.value = issue.message
-            if (issue.path[0] === 'target') editTargetError.value = issue.message
-        }
+        announce(`Goal "${editName.value.trim()}" updated`)
+        closeDialogEdit()
+    } catch (error) {
+        console.error(error)
     } finally {
         editLoading.value = false
     }
@@ -186,19 +194,24 @@ const handleEdit = async () => {
 
 const handleDelete = async () => {
     deleteLoading.value = true
+    const goalName = goal.value?.name ?? 'goal'
     try {
-        await $fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
-        await refreshNuxtData('goals')
+        await deleteGoal(goalId)
+        announce(`Goal "${goalName}" deleted`)
         await navigateTo('/')
     } catch (error) {
-        if (!(error instanceof FetchError)) { console.error(error) }
+        console.error(error)
     } finally {
         deleteLoading.value = false
     }
 }
 
 useHead({
-    title: `${goal?.value?.name ? goal.value.name : 'Goal not found'} - Savings Tracker`
+    title: computed(() => {
+        if (status.value === 'pending' || status.value === 'idle') return 'Goal - Savings Tracker'
+        if (goalsError.value) return "Couldn't load goal - Savings Tracker"
+        return `${goal.value?.name ?? 'Goal not found'} - Savings Tracker`
+    })
 })
 
 definePageMeta({ middleware: 'auth' })
@@ -211,12 +224,13 @@ definePageMeta({ middleware: 'auth' })
                 Edit goal
             </template>
             <div class="flex flex-col gap-2.5">
-                <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4"
+                <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4" autofocus
                     v-model="editName" :error-msg="editNameError" />
                 <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar"
                     v-model="editTarget" :error-msg="editTargetError" />
                 <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar"
-                    v-model="editDeadline" />
+                    v-model="editDeadline" :error-msg="editDeadlineError"
+                    @update:model-value="editDeadlineError = ''" />
             </div>
             <template #button>
                 <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialogEdit">
@@ -238,7 +252,8 @@ definePageMeta({ middleware: 'auth' })
             </template>
             This will permanently delete this goal and all its deposit history. This cannot be undone.
             <template #button>
-                <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialogDelete">
+                <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" autofocus
+                    @click="closeDialogDelete">
                     Cancel
                 </BaseButton>
                 <BaseButton type="submit" intent="primary" base-class="bg-red-500" :disabled="deleteLoading">
@@ -254,7 +269,16 @@ definePageMeta({ middleware: 'auth' })
         <NavigationBar />
         <main
             class="px-[clamp(1rem,0.523rem+2.036vw,1.5rem)] py-[clamp(2rem,1.523rem+2.036vw,2.5rem)] flex flex-col gap-4 lg:px-10 lg:mx-auto lg:max-w-180 lg:py-6">
-            <div v-if="!goal" class="flex flex-col items-center gap-3 py-16 text-center">
+            <div v-if="status === 'pending' || status === 'idle'"
+                class="flex flex-col items-center gap-3 py-16 text-center">
+                <p class="preset-5 text-neutral-300" role="status">Loading goal…</p>
+            </div>
+            <div v-else-if="goalsError" class="flex flex-col items-center gap-3 py-16 text-center">
+                <h1 class="preset-2">Couldn't load this goal</h1>
+                <p class="preset-5 text-neutral-300">Please check your connection and try again.</p>
+                <BaseButton intent="primary" type="button" @click="refreshGoals()">Retry</BaseButton>
+            </div>
+            <div v-else-if="!goal" class="flex flex-col items-center gap-3 py-16 text-center">
                 <h1 class="preset-2">Goal not found</h1>
                 <p class="preset-5 text-neutral-300">This goal may have been deleted.</p>
                 <BaseButton to="/" intent="primary" type="button">Back to goals</BaseButton>

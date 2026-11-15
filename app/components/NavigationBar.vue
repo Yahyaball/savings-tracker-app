@@ -6,11 +6,12 @@ import type ModalDialog from './ModalDialog.vue'
 import Dollar from '../assets/images/icon-dollar.svg'
 import Calendar from '../assets/images/icon-calendar.svg'
 import Spinner from '../assets/images/icon-spinner.svg'
-import { FetchError } from 'ofetch'
 import { motion, useReducedMotion } from 'motion-v'
 
 const dropdownRef = ref<HTMLElement | null>(null)
 const { user, fetchUser } = useAuth()
+const { createGoal } = useGoalActions()
+const { announce } = useLiveAnnouncer()
 const shouldReduceMotion = useReducedMotion()
 const dialogTarget = ref<InstanceType<typeof ModalDialog>>()
 const isTablet = useMediaQuery('(min-width: 48rem)')
@@ -21,28 +22,31 @@ const goalTarget = ref('')
 const goalDeadline = ref('')
 const nameError = ref('')
 const targetError = ref('')
+const deadlineError = ref('')
 const createLoading = ref(false)
 const isDropdownOpen = ref(false)
 const handleSubmit = async () => {
     nameError.value = ''
     targetError.value = ''
+    deadlineError.value = ''
     createLoading.value = true
     try {
-        await $fetch('/api/goals', { method: 'POST', body: { name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null } })
+        const issues = await createGoal({ name: goalName.value, target: Number(goalTarget.value), deadline: goalDeadline.value || null })
+        if (issues) {
+            for (const issue of issues) {
+                if (issue.path[0] === 'name') nameError.value = issue.message
+                if (issue.path[0] === 'target') targetError.value = issue.message
+                if (issue.path[0] === 'deadline') deadlineError.value = issue.message
+            }
+            return
+        }
+        announce(`Goal "${goalName.value.trim()}" created`)
         goalName.value = ''
         goalTarget.value = ''
         goalDeadline.value = ''
-        refreshNuxtData('goals')
         closeDialog()
     } catch (error) {
-        if (!(error instanceof FetchError)) {
-            console.error(error)
-            return
-        }
-        for (const issue of parseZodIssues(error)) {
-            if (issue.path[0] === 'name') nameError.value = issue.message
-            if (issue.path[0] === 'target') targetError.value = issue.message
-        }
+        console.error(error)
     } finally {
         createLoading.value = false
     }
@@ -71,12 +75,12 @@ onKeyStroke('Escape', (e) => {
             New goal
         </template>
         <div class="flex flex-col gap-2.5">
-            <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4" v-model="goalName"
-                :error-msg="nameError" />
+            <BaseInput name="name" label="Goal name" type="text" placeholder="e.g. MacBook Pro M4" autofocus
+                v-model="goalName" :error-msg="nameError" />
             <BaseInput name="target" label="Target amount" type="number" placeholder="0.00" :icon="Dollar"
                 v-model="goalTarget" :error-msg="targetError" />
             <BaseInput name="deadline" label="Deadline (optional)" type="date" :icon="Calendar"
-                v-model="goalDeadline" />
+                v-model="goalDeadline" :error-msg="deadlineError" @update:model-value="deadlineError = ''" />
         </div>
         <template #button>
             <BaseButton type="button" intent="secondary" base-class="bg-neutral-700" @click="closeDialog">
@@ -106,9 +110,9 @@ onKeyStroke('Escape', (e) => {
                     New goal
                 </BaseButton>
                 <div class="relative" ref="dropdownRef">
-                    <BaseAvatar class="cursor-pointer" @click="isDropdownOpen = !isDropdownOpen"
+                    <BaseAvatar id="account-menu" class="cursor-pointer" @click="isDropdownOpen = !isDropdownOpen"
                         aria-label="Account menu" :aria-expanded="isDropdownOpen" />
-                    <AvatarDropdown :show="isDropdownOpen" />
+                    <AvatarDropdown :show="isDropdownOpen" @close="isDropdownOpen = false" />
                 </div>
             </div>
         </div>
