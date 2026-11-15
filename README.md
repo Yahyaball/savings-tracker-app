@@ -1,168 +1,147 @@
-# Frontend Mentor - FX Checker solution
+# Savings Tracker
 
-This is a solution to the [FX Checker challenge on Frontend Mentor](https://www.frontendmentor.io/challenges/foreign-exchange-currency-converter). Frontend Mentor challenges help you improve your coding skills by building realistic projects.
+A savings-goal tracker built with Nuxt 4, Appwrite, and Tailwind CSS. Users can create goals, add deposits, follow progress on the dashboard, and manage their account. This project was built from the Frontend Mentor savings tracker challenge and is intended as a portfolio piece.
 
-## Table of contents
+## Features
 
-- [Overview](#overview)
-  - [The challenge](#the-challenge)
-  - [Screenshot](#screenshot)
-  - [Links](#links)
-- [My process](#my-process)
-  - [Built with](#built-with)
-  - [What I learned](#what-i-learned)
-  - [Continued development](#continued-development)
-  - [Useful resources](#useful-resources)
-  - [AI Collaboration](#ai-collaboration)
-- [Author](#author)
-- [Acknowledgments](#acknowledgments)
+- Email/password authentication with sign-up, login, logout, password recovery, and route guards
+- Account menu with profile editing (name/email) and password changes
+- Create, edit, and delete savings goals with an optional deadline
+- Add deposits with an optional note and view the full deposit history
+- Dashboard totals for savings, active goals, and completed goals
+- Monthly deposits chart for the last 12 months
+- Filter goals by status and sort by deadline, progress, amount saved, name, or creation date
+- Goal cards with animated progress, completion badges, and deadline information
+- Responsive layout with keyboard-accessible dialogs, focus restoration, and live-region announcements
+- Reduced-motion support
 
-**Note: Delete this note and update the table of contents based on what sections you keep.**
+## Tech stack
 
-## Overview
+- [Nuxt 4](https://nuxt.com/) with Vue 3 and TypeScript
+- [Appwrite](https://appwrite.io/) Auth and TablesDB (Web SDK)
+- [Tailwind CSS 4](https://tailwindcss.com/) and Tailwind Variants
+- [Zod](https://zod.dev/) for input validation
+- [Motion for Vue](https://motion.dev/) and Auto Animate
+- [Bun](https://bun.sh/) for local scripts
 
-### The challenge
+## Getting started
 
-Your users should be able to:
+### 1. Install dependencies
 
-#### Converter
-
-- Enter an amount to send and see it convert in real time as they type
-- Pick the "send" and "receive" currencies from a searchable currency picker
-- See the live exchange rate for the active pair (for example, `1 USD = 0.8530 EUR`)
-- Swap the send and receive currencies with the swap button
-- Favorite the active pair, and log a conversion to their history
-
-#### Currency picker
-
-- Search the full list of available currencies by code or name
-- See currencies grouped into "Popular" and "Other currencies", each row showing the flag, code, and name
-- See a check against the currency that's currently selected
-
-#### Live markets ticker
-
-- See a ticker of currency pairs, each with its current rate and 24-hour change (up or down)
-
-#### Rate history
-
-- View a line and area chart of the active pair's rate over time
-- Switch the chart range between 1D, 1W, 1M, 3M, 1Y, and 5Y
-- See the open, last, absolute change, and percentage change for the selected range
-
-#### Compare
-
-- See their send amount converted into a range of other currencies at once, each with its reference rate
-- Pin or unpin any comparison row to their favorites
-
-#### Favorites
-
-- See their pinned pairs, each with its live rate and 24-hour change
-- Load a pinned pair back into the converter by selecting its row
-- Unpin a pair they no longer want to track
-
-#### Conversion log
-
-- See a log of conversions they've made, each showing the relative time, the pair, and the send and receive amounts
-- Clear the whole log
-- Delete an individual entry
-
-#### UI & accessibility
-
-- View the optimal layout for the interface depending on their device's screen size
-- See hover and focus states for all interactive elements on the page
-- Navigate the entire app using only their keyboard
-
-### Screenshot
-
-![](./screenshot.jpg)
-
-Add a screenshot of your solution. The easiest way to do this is to use Firefox to view your project, right-click the page and select "Take a Screenshot". You can choose either a full-height screenshot or a cropped one based on how long the page is. If it's very long, it might be best to crop it.
-
-Alternatively, you can use a tool like [FireShot](https://getfireshot.com/) to take the screenshot. FireShot has a free option, so you don't need to purchase it.
-
-Then crop/optimize/edit your image however you like, add it to your project, and update the file path in the image above.
-
-**Note: Delete this note and the paragraphs above when you add your screenshot. If you prefer not to add a screenshot, feel free to remove this entire section.**
-
-### Links
-
-- Solution URL: [Add solution URL here](https://your-solution-url.com)
-- Live Site URL: [Add live site URL here](https://your-live-site-url.com)
-
-## My process
-
-### Built with
-
-- Semantic HTML5 markup
-- CSS custom properties
-- Flexbox
-- CSS Grid
-- Mobile-first workflow
-- [React](https://reactjs.org/) - JS library
-- [Next.js](https://nextjs.org/) - React framework
-- [Styled Components](https://styled-components.com/) - For styles
-
-**Note: These are just examples. Delete this note and replace the list above with your own choices**
-
-### What I learned
-
-Use this section to recap over some of your major learnings while working through this project. Writing these out and providing code samples of areas you want to highlight is a great way to reinforce your own knowledge.
-
-To see how you can add code snippets, see below:
-
-```html
-<h1>Some HTML code I'm proud of</h1>
+```bash
+bun install
 ```
 
-```css
-.proud-of-this-css {
-  color: papayawhip;
-}
+### 2. Create the Appwrite resources
+
+Create an Appwrite project, then create a database and a table named `goals` with these columns:
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `name` | String | Goal name |
+| `target` | Float | Target amount, greater than 0 |
+| `deadline` | DateTime | Optional |
+| `deposits` | String | JSON-encoded array of deposits |
+| `userId` | String | Appwrite user ID |
+
+Recommended permissions:
+
+- Table: allow the `users` role to create rows.
+- Rows: grant the owning user read, update, and delete permissions. The app creates each row with these permissions.
+
+The dashboard and goal detail routes are rendered client-side because the Appwrite Web SDK stores sessions in `localStorage`.
+
+### 3. Configure environment variables
+
+Copy `.env.example` to `.env` and fill in your project values:
+
+```bash
+cp .env.example .env
 ```
 
-```js
-const proudOfThisFunc = () => {
-  console.log("🎉");
-};
+| Variable | Description |
+| --- | --- |
+| `NUXT_PUBLIC_APPWRITE_ENDPOINT` | Appwrite API endpoint, for example `https://fra.cloud.appwrite.io/v1` |
+| `NUXT_PUBLIC_APPWRITE_PROJECT_ID` | Appwrite project ID |
+| `NUXT_PUBLIC_APPWRITE_PROJECT_NAME` | Appwrite project display name |
+| `NUXT_PUBLIC_APPWRITE_DATABASE_ID` | Database containing the goals table |
+| `NUXT_PUBLIC_APPWRITE_GOALS_TABLE_ID` | Goals table ID (usually `goals`) |
+
+The legacy `APPWRITE_*` names are still accepted locally, but use the `NUXT_PUBLIC_*` names for deployment.
+
+### 4. Add a web platform
+
+In the Appwrite Console, add `localhost` as a Web platform for local development. Add your deployed site hostname as another Web platform before testing authentication in production.
+
+### 5. Run the app
+
+```bash
+bun run dev
 ```
 
-If you want more help with writing markdown, we'd recommend checking out [The Markdown Guide](https://www.markdownguide.org/) to learn more.
+## Deploying to Appwrite Sites
 
-**Note: Delete this note and the content within this section and replace with your own learnings.**
+1. Add the `NUXT_PUBLIC_APPWRITE_*` variables under **Site settings → Environment variables**.
+2. Add the deployed site hostname as a **Web platform** in the Appwrite project. Authentication requests are blocked otherwise.
+3. Use the Nuxt preset settings: install `bun install`, build `bun run build`, output `.output`.
+4. Redeploy after changing environment variables. Appwrite only applies variable changes to new deployments.
+5. Do not create custom variables with the `APPWRITE_` prefix on Appwrite Sites. Appwrite reserves that prefix for injected variables such as `APPWRITE_SITE_API_ENDPOINT` and `APPWRITE_SITE_PROJECT_ID`.
 
-### Continued development
+The runtime config falls back to the injected `APPWRITE_SITE_API_ENDPOINT` and `APPWRITE_SITE_PROJECT_ID` when the public variables are absent, but setting the `NUXT_PUBLIC_*` values explicitly is recommended.
 
-Use this section to outline areas that you want to continue focusing on in future projects. These could be concepts you're still not completely comfortable with or techniques you found useful that you want to refine and perfect.
+### Troubleshooting
 
-**Note: Delete this note and the content within this section and replace with your own plans for continued development.**
+**`Endpoint must be a valid string`**
 
-### Useful resources
+The Appwrite client was created without a usable endpoint. This usually means the production environment variables were missing or the site was not redeployed after adding them. Set `NUXT_PUBLIC_APPWRITE_ENDPOINT` and `NUXT_PUBLIC_APPWRITE_PROJECT_ID` in the Appwrite Site settings, confirm the deployed site domain is registered as a Web platform, then redeploy.
 
-- [Example resource 1](https://www.example.com) - This helped me for XYZ reason. I really liked this pattern and will use it going forward.
-- [Example resource 2](https://www.example.com) - This is an amazing article which helped me finally understand XYZ. I'd recommend it to anyone still learning this concept.
+**Authentication works locally but fails after deployment**
 
-**Note: Delete this note and replace the list above with resources that helped you during the challenge. These could come in handy for anyone viewing your solution or for yourself when you look back on this project in the future.**
+Check that:
 
-### AI Collaboration
+- `NUXT_PUBLIC_APPWRITE_ENDPOINT` uses the public API endpoint for your Appwrite region.
+- The deployed hostname is listed as a Web platform.
+- The site was redeployed after the environment variables were added.
+- The Appwrite project allows the authentication method being used.
 
-Describe how you used AI tools (if any) during this project. This helps demonstrate your ability to work effectively with AI assistants.
+## Scripts
 
-- What tools did you use (e.g., ChatGPT, Claude, GitHub Copilot)?
-- How did you use them (e.g., debugging, generating boilerplate, brainstorming solutions)?
-- What worked well? What didn't?
+```bash
+bun run dev       # Start the development server
+bun run build     # Build for production
+bun run preview   # Preview the production build
+bun run generate  # Generate a static build
+```
 
-**Note: Delete this note and the content above if you didn't use AI, or replace with your own experience.**
+## Project structure
 
-## Author
+```text
+app/
+  components/     Shared UI, dialogs, navigation, goal cards
+  composables/    Auth, goals/data access, count-up, live announcements
+  layouts/        Nuxt layouts
+  middleware/     Auth and guest route guards
+  pages/          Dashboard, goal detail, and auth pages
+  plugins/        Appwrite client initialization
+  types/          Shared TypeScript types
+  utils/          Validation schemas and savings helpers
+```
 
-- Website - [Add your name here](https://www.your-site.com)
-- Frontend Mentor - [@yourusername](https://www.frontendmentor.io/profile/yourusername)
-- Twitter - [@yourusername](https://www.twitter.com/yourusername)
+## Accessibility
 
-**Note: Delete this note and add/remove/edit lines above based on what links you'd like to share.**
+- Dialogs use labelled titles, labelled close buttons, focus restoration, and Escape-to-close behavior.
+- Goal and deposit changes are announced through a polite live region.
+- Progress bars expose accessible values.
+- Interactive elements have visible focus styles.
+- Animations respect `prefers-reduced-motion`.
 
-## Acknowledgments
+## Known limitations
 
-This is where you can give a hat tip to anyone who helped you out on this project. Perhaps you worked in a team or got some inspiration from someone else's solution. This is the perfect place to give them some credit.
+- Currency is fixed to USD.
+- Deposits are stored as JSON in a text column and updated with a read-modify-write request; concurrent updates can overwrite each other.
+- There is no email-verification page. Email changes reset Appwrite's verification status, and the UI marks the address as unverified.
+- No demo seed data or screenshot is included yet.
 
-**Note: Delete this note and edit this section's content as necessary. If you completed this challenge by yourself, feel free to delete this section entirely.**
+## Acknowledgements
+
+Built as a solution to a [Frontend Mentor](https://www.frontendmentor.io/) challenge.

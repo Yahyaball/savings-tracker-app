@@ -49,7 +49,7 @@ export function useGoalActions() {
   const requireConfig = () => {
     if (!databaseId || !goalsTableId) {
       throw new Error(
-        "Appwrite is misconfigured: set APPWRITE_DATABASE_ID and APPWRITE_GOALS_TABLE_ID in .env",
+        "Appwrite is misconfigured: set NUXT_PUBLIC_APPWRITE_DATABASE_ID and NUXT_PUBLIC_APPWRITE_GOALS_TABLE_ID",
       );
     }
   };
@@ -160,7 +160,7 @@ export async function useGoals() {
     if (!account) return [];
     if (!databaseId || !goalsTableId) {
       throw new Error(
-        "Appwrite is misconfigured: set APPWRITE_DATABASE_ID and APPWRITE_GOALS_TABLE_ID in .env",
+        "Appwrite is misconfigured: set NUXT_PUBLIC_APPWRITE_DATABASE_ID and NUXT_PUBLIC_APPWRITE_GOALS_TABLE_ID",
       );
     }
     try {
