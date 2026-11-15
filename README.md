@@ -1,5 +1,11 @@
 # Savings Tracker
 
+![Nuxt JS](https://img.shields.io/badge/Nuxt-%23002E3B.svg?style=for-the-badge&logo=nuxt&logoColor=#00DC82)
+![Appwrite](https://img.shields.io/badge/Appwrite-%23FD366E.svg?style=for-the-badge&logo=appwrite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Zod](https://img.shields.io/badge/zod-%233068b7.svg?style=for-the-badge&logo=zod&logoColor=white)
+![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white)
+
 A savings-goal tracker built with Nuxt 4, Appwrite, and Tailwind CSS. Users can create goals, add deposits, follow progress on the dashboard, and manage their account. This project was built from the Frontend Mentor savings tracker challenge and is intended as a portfolio piece.
 
 ## Features
